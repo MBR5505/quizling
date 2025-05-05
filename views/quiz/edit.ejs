@@ -1,0 +1,692 @@
+<script>
+  // Form submission
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Reset messages
+    errorContainer.classList.add('d-none');
+    successMessage.classList.add('d-none');
+    document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+    
+    try {
+      const quizData = collectFormData();
+      
+      // Validate quiz data
+      if (!validateQuizData(quizData)) {
+        return;
+      }
+      
+      // Disable submit button
+      const submitButton = document.getElementById('submit-button');
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Oppdaterer...';
+      
+      // Send data to server
+      const response = await fetch(`/quiz/${quizId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(quizData)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.errors || 'Det oppstod en feil ved oppdatering av quizzen.');
+      }
+      
+      // Show success message
+      successMessage.classList.remove('d-none');
+      successMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      // Re-enable submit button
+      submitButton.disabled = false;
+      submitButton.textContent = 'Oppdater quiz';
+      
+      // Redirect after short delay
+      setTimeout(() => {
+        window.location.href = `/quiz/${quizId}`;
+      }, 1500);
+    } catch (error) {
+      console.error('Error:', error);
+      
+      // Display error message
+      errorContainer.textContent = error.message || 'Det oppstod en feil ved oppdatering av quizzen.';
+      errorContainer.classList.remove('d-none');
+      
+      // Re-enable submit button
+      const submitButton = document.getElementById('submit-button');
+      submitButton.disabled = false;
+      submitButton.textContent = 'Oppdater quiz';
+      
+      // Scroll to error
+      errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  });
+
+  function addQuestion() {
+    const template = document.getElementById('question-template');
+    const questionItem = document.importNode(template.content, true).querySelector('.question-item');
+    
+    // Set question number
+    const questionNumber = document.querySelectorAll('.question-item').length + 1;
+    questionItem.querySelector('.question-number').textContent = questionNumber;
+    
+    // Add question options (default to multiple-choice)
+    const optionsContainer = questionItem.querySelector('.question-options');
+    renderQuestionOptions(optionsContainer, 'multiple-choice');
+    
+    // Add to container
+    questionsContainer.appendChild(questionItem);
+    
+    // Focus on the new question text field
+    setTimeout(() => {
+      questionItem.querySelector('.question-text').focus();
+    }, 0);
+  }
+  
+  function renderQuestionOptions(container, type) {
+    container.innerHTML = '';
+    
+    if (type === 'multiple-choice') {
+      const mcTemplate = document.getElementById('multiple-choice-template');
+      const mcOptions = document.importNode(mcTemplate.content, true);
+      container.appendChild(mcOptions);
+      
+      // Add initial options
+      const optionsList = container.querySelector('.options-list');
+      addOption(optionsList);
+      addOption(optionsList);
+    } else if (type === 'true-false') {
+      const tfTemplate = document.getElementById('true-false-template');
+      const tfOptions = document.importNode(tfTemplate.content, true);
+      container.appendChild(tfOptions);
+    } else if (type === 'short-answer') {
+      const saTemplate = document.getElementById('short-answer-template');
+      const saOptions = document.importNode(saTemplate.content, true);
+      container.appendChild(saOptions);
+    }
+  }
+  
+  function addOption(optionsList) {
+    const template = document.getElementById('option-item-template');
+    const option = document.importNode(template.content, true);
+    optionsList.appendChild(option);
+  }
+  
+  function updateQuestionNumbers() {
+    document.querySelectorAll('.question-item').forEach((item, index) => {
+      item.querySelector('.question-number').textContent = index + 1;
+    });
+  }
+  
+  function collectFormData() {
+    const quizData = {
+      title: document.getElementById('title').value.trim(),
+      description: document.getElementById('description').value.trim(),
+      category: document.getElementById('category').value,
+      isPublished: document.getElementById('isPublished').checked,
+      questions: []
+    };
+    
+    // Collect questions
+    document.querySelectorAll('.question-item').forEach((questionItem) => {
+      const questionType = questionItem.querySelector('.question-type').value;
+      const question = {
+        questionText: questionItem.querySelector('.question-text').value.trim(),
+        questionType: questionType,
+        points: parseInt(questionItem.querySelector('.question-points').value) || 1
+      };
+      
+      // Add question ID if it exists
+      const questionId = questionItem.dataset.id;
+      if (questionId) {
+        question._id = questionId;
+      }
+      
+      // Add options based on question type
+      if (questionType === 'multiple-choice') {
+        question.options = [];
+        questionItem.querySelectorAll('.option-row').forEach((optionRow) => {
+          question.options.push({
+            text: optionRow.querySelector('.option-text').value.trim(),
+            isCorrect: optionRow.querySelector('.option-correct').checked
+          });
+        });
+      } else if (questionType === 'true-false') {
+        const isTrue = questionItem.querySelector('input[type="radio"][value="true"]').checked;
+        question.options = [
+          { text: 'Sant', isCorrect: isTrue },
+          { text: 'Usant', isCorrect: !isTrue }
+        ];
+      } else if (questionType === 'short-answer') {
+        question.correctAnswer = questionItem.querySelector('.correct-answer').value.trim();
+      }
+      
+      quizData.questions.push(question);
+    });
+    
+    return quizData;
+  }
+  
+  function validateQuizData(quizData) {
+    let isValid = true;
+    
+    // Validate title
+    if (!quizData.title || quizData.title.length < 3 || quizData.title.length > 100) {
+      document.getElementById('title').classList.add('is-invalid');
+      document.getElementById('title-error').textContent = 'Tittel må være mellom 3 og 100 tegn.';
+      isValid = false;
+    }
+    
+    // Validate description
+    if (!quizData.description || quizData.description.length < 10 || quizData.description.length > 500) {
+      document.getElementById('description').classList.add('is-invalid');
+      document.getElementById('description-error').textContent = 'Beskrivelse må være mellom 10 og 500 tegn.';
+      isValid = false;
+    }
+    
+    // Validate category
+    if (!quizData.category) {
+      document.getElementById('category').classList.add('is-invalid');
+      document.getElementById('category-error').textContent = 'Du må velge en kategori.';
+      isValid = false;
+    }
+    
+    // Validate questions
+    if (quizData.questions.length === 0) {
+      errorContainer.textContent = 'Du må legge til minst ett spørsmål.';
+      errorContainer.classList.remove('d-none');
+      isValid = false;
+    }
+    
+    // Validate each question
+    quizData.questions.forEach((question, index) => {
+      const questionItem = document.querySelectorAll('.question-item')[index];
+      
+      // Check question text
+      if (!question.questionText) {
+        questionItem.querySelector('.question-text').classList.add('is-invalid');
+        isValid = false;
+      }
+      
+      // Check options for multiple choice
+      if (question.questionType === 'multiple-choice') {
+        // Check if at least one option is marked as correct
+        if (!question.options.some(opt => opt.isCorrect)) {
+          errorContainer.textContent = `Spørsmål ${index + 1}: Du må markere minst ett alternativ som riktig.`;
+          errorContainer.classList.remove('d-none');
+          isValid = false;
+        }
+        
+        // Check if any option is empty
+        question.options.forEach((option, optIndex) => {
+          if (!option.text) {
+            const optionInputs = questionItem.querySelectorAll('.option-text');
+            if (optIndex < optionInputs.length) {
+              optionInputs[optIndex].classList.add('is-invalid');
+              isValid = false;
+            }
+          }
+        });
+      }
+      
+      // Check correct answer for short answer
+      if (question.questionType === 'short-answer' && !question.correctAnswer) {
+        questionItem.querySelector('.correct-answer').classList.add('is-invalid');
+        isValid = false;
+      }
+    });
+    
+    if (!isValid) {
+      errorContainer.textContent = errorContainer.textContent || 'Vennligst rett feilene før du fortsetter.';
+      errorContainer.classList.remove('d-none');
+    }
+    
+    return isValid;
+  }
+  
+  // Render HTML for multiple choice options
+  function renderMultipleChoiceOptions(options) {
+    if (!options || !options.length) {
+      options = [{ text: '', isCorrect: false }, { text: '', isCorrect: false }];
+    }
+    
+    return options.map((option, index) => `
+      <div class="option-row mb-2 d-flex align-items-center">
+        <div class="form-check me-2">
+          <input class="form-check-input option-correct" type="checkbox" ${option.isCorrect ? 'checked' : ''}>
+        </div>
+        <input type="text" class="form-control option-text" value="${option.text || ''}" placeholder="Svaralternativ ${index + 1}">
+        <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+  
+  // Render HTML for poll options
+  function renderPollOptions(options) {
+    if (!options || !options.length) {
+      options = [{ text: '' }, { text: '' }];
+    }
+    
+    return options.map((option, index) => `
+      <div class="option-row mb-2 d-flex align-items-center">
+        <input type="text" class="form-control option-text" value="${option.text || ''}" placeholder="Alternativ ${index + 1}">
+        <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    `).join('');
+  }
+  
+  // Switch to a specific question
+  function switchToQuestion(index) {
+    // Save current question data
+    saveCurrentQuestionData();
+    
+    // Update current index
+    currentQuestionIndex = index;
+    
+    // Render the question editor
+    renderQuestionEditor();
+    
+    // Update UI states
+    updateQuestionsList();
+    updateNavigationState();
+  }
+  
+  // Save the current question data
+  function saveCurrentQuestionData() {
+    const editor = questionEditorsContainer.querySelector('.question-editor');
+    const question = questions[currentQuestionIndex];
+    
+    // Save basic question data
+    question.type = editor.querySelector('.question-type').value;
+    question.text = editor.querySelector('.question-text').value;
+    question.points = parseInt(editor.querySelector('.question-points input').value) || 1;
+    
+    // Save options based on question type
+    if (question.type === 'multiple-choice') {
+      question.options = [];
+      editor.querySelectorAll('.option-row').forEach(row => {
+        question.options.push({
+          text: row.querySelector('.option-text').value,
+          isCorrect: row.querySelector('.option-correct').checked
+        });
+      });
+    } 
+    else if (question.type === 'true-false') {
+      const trueChecked = editor.querySelector('input[value="true"]').checked;
+      question.options = [
+        { text: 'Sant', isCorrect: trueChecked },
+        { text: 'Usant', isCorrect: !trueChecked }
+      ];
+    }
+    else if (question.type === 'short-answer') {
+      question.correctAnswer = editor.querySelector('.correct-answer').value;
+      // Clear options for short answer
+      question.options = [];
+    }
+    else if (question.type === 'poll') {
+      question.options = [];
+      editor.querySelectorAll('.option-row').forEach(row => {
+        question.options.push({
+          text: row.querySelector('.option-text').value,
+          isCorrect: false // No correct answers in polls
+        });
+      });
+    }
+    
+    // Update the questions list
+    updateQuestionsList();
+  }
+  
+  // Add a new question
+  function addNewQuestion() {
+    // Save current question data first
+    saveCurrentQuestionData();
+    
+    // Add new question
+    questions.push({
+      type: 'multiple-choice',
+      text: '',
+      image: null,
+      points: 1,
+      options: [
+        { text: '', isCorrect: false },
+        { text: '', isCorrect: false }
+      ]
+    });
+    
+    // Switch to the new question
+    switchToQuestion(questions.length - 1);
+  }
+  
+  // Setup options event listeners
+  function setupOptionsEventListeners(container) {
+    // Add option button
+    const addOptionBtn = container.querySelector('.add-option-btn');
+    if (addOptionBtn) {
+      addOptionBtn.addEventListener('click', () => {
+        const optionsList = container.querySelector('.options-list');
+        const questionType = questions[currentQuestionIndex].type;
+        
+        if (questionType === 'multiple-choice') {
+          const template = document.getElementById('option-row-template');
+          const clone = document.importNode(template.content, true);
+          optionsList.appendChild(clone);
+        } 
+        else if (questionType === 'poll') {
+          const template = document.getElementById('poll-option-row-template');
+          const clone = document.importNode(template.content, true);
+          optionsList.appendChild(clone);
+        }
+      });
+    }
+    
+    // Remove option buttons (using event delegation)
+    container.addEventListener('click', (e) => {
+      if (e.target.closest('.remove-option-btn')) {
+        const optionRow = e.target.closest('.option-row');
+        const optionsList = optionRow.parentElement;
+        
+        // Don't remove if there are only two options
+        if (optionsList.children.length > 2) {
+          optionRow.remove();
+        } else {
+          alert('Du må ha minst to svaralternativer.');
+        }
+      }
+    });
+  }
+  
+  // Setup image upload functionality
+  function setupImageUpload() {
+    const uploadContainer = document.querySelector('.image-upload-container');
+    const fileInput = uploadContainer.querySelector('.question-image-input');
+    const browseLink = uploadContainer.querySelector('.browse-link');
+    const removeBtn = uploadContainer.querySelector('.remove-image-btn');
+    const previewContainer = uploadContainer.querySelector('.image-preview-container');
+    const previewImg = uploadContainer.querySelector('.question-image-preview');
+    
+    // Open file dialog when clicking the container or browse link
+    uploadContainer.addEventListener('click', () => {
+      if (!previewContainer.classList.contains('d-none')) return;
+      fileInput.click();
+    });
+    
+    browseLink.addEventListener('click', (e) => {
+      e.stopPropagation();
+      fileInput.click();
+    });
+    
+    // Handle drag and drop
+    uploadContainer.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadContainer.style.borderColor = '#007bff';
+      uploadContainer.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+    });
+    
+    uploadContainer.addEventListener('dragleave', () => {
+      uploadContainer.style.borderColor = '#dee2e6';
+      uploadContainer.style.backgroundColor = '';
+    });
+    
+    uploadContainer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadContainer.style.borderColor = '#dee2e6';
+      uploadContainer.style.backgroundColor = '';
+      
+      if (e.dataTransfer.files.length) {
+        handleImageUpload(e.dataTransfer.files[0]);
+      }
+    });
+    
+    // Handle file selection
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files.length) {
+        handleImageUpload(fileInput.files[0]);
+      }
+    });
+    
+    // Remove image button
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      questions[currentQuestionIndex].image = null;
+      previewContainer.classList.add('d-none');
+      removeBtn.classList.add('d-none');
+      previewImg.src = '';
+    });
+    
+    // Function to handle image upload
+    function handleImageUpload(file) {
+      // Check file type
+      if (!file.type.match('image.*')) {
+        alert('Vennligst velg et bilde (JPEG, PNG, GIF).');
+        return;
+      }
+      
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Bildet må være under 2MB.');
+        return;
+      }
+      
+      // Show loading state
+      const loadingElement = uploadContainer.querySelector('.image-upload-loading');
+      loadingElement.classList.remove('d-none');
+      
+      // Use FileReader to read and display the image
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        // Set the image in the question data
+        questions[currentQuestionIndex].image = e.target.result;
+        
+        // Update the preview
+        previewImg.src = e.target.result;
+        previewContainer.classList.remove('d-none');
+        removeBtn.classList.remove('d-none');
+        loadingElement.classList.add('d-none');
+      };
+      
+      reader.onerror = () => {
+        alert('Det oppstod en feil ved lesing av bildet.');
+        loadingElement.classList.add('d-none');
+      };
+      
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  // Setup all event listeners
+  function setupEventListeners() {
+    // Question type change
+    const questionType = document.querySelector('.question-type');
+    questionType.addEventListener('change', function() {
+      // Save the current question type
+      const question = questions[currentQuestionIndex];
+      question.type = this.value;
+      
+      // Render the options for this type
+      const editor = questionEditorsContainer.querySelector('.question-editor');
+      renderQuestionOptions(editor, question);
+    });
+    
+    // Navigation buttons
+    prevQuestionBtn.addEventListener('click', () => {
+      if (currentQuestionIndex > 0) {
+        switchToQuestion(currentQuestionIndex - 1);
+      }
+    });
+    
+    nextQuestionBtn.addEventListener('click', () => {
+      if (currentQuestionIndex === questions.length - 1) {
+        // Add new question if we're at the last one
+        addNewQuestion();
+      } else {
+        // Otherwise go to next question
+        switchToQuestion(currentQuestionIndex + 1);
+      }
+    });
+    
+    // Add question button
+    addQuestionBtn.addEventListener('click', addNewQuestion);
+    
+    // Save quiz button
+    saveQuizBtn.addEventListener('click', saveQuiz);
+    
+    // Setup image upload
+    setupImageUpload();
+  }
+  
+  // Save the quiz to the server
+  async function saveQuiz() {
+    // Save the current question data
+    saveCurrentQuestionData();
+    
+    // Validate quiz data
+    if (!validateQuizData()) {
+      return;
+    }
+    
+    // Prepare the quiz data
+    const quizData = {
+      title: quizTitle.value,
+      description: quizDescription.value,
+      category: categorySelect.value,
+      isPublished: isPublishedCheckbox.checked,
+      questions: questions
+    };
+    
+    // Display loading state
+    saveQuizBtn.disabled = true;
+    saveQuizBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Oppdaterer...';
+    
+    try {
+      // Send data to server
+      const response = await fetch(`/quiz/${quizId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(quizData)
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.errors || 'Det oppstod en feil ved oppdatering av quizzen.');
+      }
+      
+      // Show success message
+      alert('Quizzen ble oppdatert!');
+      
+      // Redirect to the quiz page
+      window.location.href = `/quiz/${quizId}`;
+    } catch (error) {
+      alert('Feil: ' + error.message);
+      
+      // Reset button state
+      saveQuizBtn.disabled = false;
+      saveQuizBtn.innerHTML = '<i class="bi bi-save me-1"></i> Oppdater quiz';
+    }
+  }
+  
+  // Validate the quiz data
+  function validateQuizData() {
+    let isValid = true;
+    
+    // Check title and description
+    if (!quizTitle.value.trim()) {
+      alert('Vennligst fyll inn en tittel for quizzen.');
+      quizTitle.focus();
+      return false;
+    }
+    
+    if (!quizDescription.value.trim()) {
+      alert('Vennligst fyll inn en beskrivelse for quizzen.');
+      quizDescription.focus();
+      return false;
+    }
+    
+    if (!categorySelect.value) {
+      alert('Vennligst velg en kategori for quizzen.');
+      categorySelect.focus();
+      return false;
+    }
+    
+    // Check if there are any questions
+    if (questions.length === 0) {
+      alert('Quizzen må ha minst ett spørsmål.');
+      return false;
+    }
+    
+    // Check each question
+    for (let i = 0; i < questions.length; i++) {
+      const question = questions[i];
+      
+      // Check question text
+      if (!question.text.trim()) {
+        alert(`Spørsmål ${i + 1} mangler tekst.`);
+        switchToQuestion(i);
+        return false;
+      }
+      
+      // Check options based on question type
+      if (question.type === 'multiple-choice') {
+        // Check if there are at least 2 options
+        if (!question.options || question.options.length < 2) {
+          alert(`Spørsmål ${i + 1} må ha minst to svaralternativer.`);
+          switchToQuestion(i);
+          return false;
+        }
+        
+        // Check if at least one option is marked as correct
+        if (!question.options.some(opt => opt.isCorrect)) {
+          alert(`Spørsmål ${i + 1} må ha minst ett riktig svar markert.`);
+          switchToQuestion(i);
+          return false;
+        }
+        
+        // Check if all options have text
+        if (question.options.some(opt => !opt.text.trim())) {
+          alert(`Alle svaralternativer i spørsmål ${i + 1} må ha tekst.`);
+          switchToQuestion(i);
+          return false;
+        }
+      } 
+      else if (question.type === 'short-answer') {
+        // Check if there is a correct answer
+        if (!question.correctAnswer || !question.correctAnswer.trim()) {
+          alert(`Spørsmål ${i + 1} må ha et riktig svar angitt.`);
+          switchToQuestion(i);
+          return false;
+        }
+      }
+      else if (question.type === 'poll') {
+        // Check if there are at least 2 options
+        if (!question.options || question.options.length < 2) {
+          alert(`Spørsmål ${i + 1} må ha minst to alternativer.`);
+          switchToQuestion(i);
+          return false;
+        }
+        
+        // Check if all options have text
+        if (question.options.some(opt => !opt.text.trim())) {
+          alert(`Alle alternativer i spørsmål ${i + 1} må ha tekst.`);
+          switchToQuestion(i);
+          return false;
+        }
+      }
+    }
+    
+    return isValid;
+  }
+  
+  // Initialize the editor
+  initializeEditor();
+});
+</script>

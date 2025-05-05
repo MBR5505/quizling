@@ -1,0 +1,154 @@
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Kontrollpanel</h1>
+    <div>
+      <a href="/quiz/create/new" class="btn btn-primary">Lag ny quiz</a>
+    </div>
+  </div>
+  
+  <div class="row">
+    <div class="col-lg-8">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Mine quizzer</h4>
+        </div>
+        <div class="card-body">
+          <% if (quizzes && quizzes.length > 0) { %>
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Tittel</th>
+                    <th>Kategori</th>
+                    <th>Status</th>
+                    <th>Opprettet</th>
+                    <th>Handlinger</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% quizzes.forEach(quiz => { %>
+                    <tr>
+                      <td><a href="/quiz/<%= quiz._id %>"><%= quiz.title %></a></td>
+                      <td><%= quiz.category %></td>
+                      <td>
+                        <% if (quiz.isPublished) { %>
+                          <span class="badge bg-success">Publisert</span>
+                        <% } else { %>
+                          <span class="badge bg-warning text-dark">Utkast</span>
+                        <% } %>
+                      </td>
+                      <td><%= new Date(quiz.createdAt).toLocaleDateString('nb-NO') %></td>
+                      <td>
+                        <div class="btn-group btn-group-sm">
+                          <a href="/quiz/<%= quiz._id %>/edit" class="btn btn-outline-primary">Rediger</a>
+                          <button class="btn btn-outline-danger delete-quiz" data-id="<%= quiz._id %>" data-title="<%= quiz.title %>">Slett</button>
+                        </div>
+                      </td>
+                    </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              Du har ikke laget noen quizzer ennå. 
+              <a href="/quiz/create/new" class="alert-link">Lag din første quiz!</a>
+            </div>
+          <% } %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+          <h4 class="mb-0">Min profil</h4>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <strong>Brukernavn:</strong> <%= user.username %>
+          </div>
+          <div class="mb-3">
+            <strong>E-post:</strong> <%= user.email %>
+          </div>
+          <div class="mb-3">
+            <strong>Medlem siden:</strong> <%= new Date(user.createdAt).toLocaleDateString('nb-NO') %>
+          </div>
+          <div class="d-grid gap-2 mt-3">
+            <a href="/user/edit-profile" class="btn btn-outline-primary">Rediger profil</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0">Raske lenker</h4>
+        </div>
+        <ul class="list-group list-group-flush">
+          <li class="list-group-item"><a href="/quiz" class="text-decoration-none">Se alle quizzer</a></li>
+          <li class="list-group-item"><a href="/quiz/create/new" class="text-decoration-none">Lag ny quiz</a></li>
+          <li class="list-group-item"><a href="/faq" class="text-decoration-none">Ofte stilte spørsmål</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="deleteQuizModal" tabindex="-1" aria-labelledby="deleteQuizModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteQuizModalLabel">Bekreft sletting</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Er du sikker på at du vil slette quizzen "<span id="quizTitle"></span>"?</p>
+        <p class="text-danger">Dette kan ikke angres!</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+        <button type="button" class="btn btn-danger" id="confirmDelete">Slett quiz</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteQuizModal'));
+    let quizIdToDelete;
+    
+    // Set up delete buttons
+    document.querySelectorAll('.delete-quiz').forEach(button => {
+      button.addEventListener('click', function() {
+        quizIdToDelete = this.dataset.id;
+        document.getElementById('quizTitle').textContent = this.dataset.title;
+        deleteModal.show();
+      });
+    });
+    
+    // Handle confirmation
+    document.getElementById('confirmDelete').addEventListener('click', async function() {
+      if (!quizIdToDelete) return;
+      
+      try {
+        const response = await fetch(`/quiz/${quizIdToDelete}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          // Refresh the page on success
+          window.location.reload();
+        } else {
+          const data = await response.json();
+          alert(`Feil: ${data.error || 'Det oppstod en feil ved sletting av quiz'}`);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Det oppstod en feil ved sletting av quiz');
+      }
+      
+      deleteModal.hide();
+    });
+  });
+</script>

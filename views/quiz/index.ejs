@@ -1,0 +1,112 @@
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="mb-4">Alle quizzer</h1>
+    </div>
+    <div class="col-md-4 text-end">
+      <% if (locals.user) { %>
+        <a href="/quiz/create/new" class="btn btn-primary">Lag ny quiz</a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3 mb-4">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Filter</h5>
+        </div>
+        <div class="card-body">
+          <form id="filter-form">
+            <div class="mb-3">
+              <label for="category" class="form-label">Kategori</label>
+              <select class="form-select" id="category" name="category">
+                <option value="">Alle kategorier</option>
+                <option value="programmering">Programmering</option>
+                <option value="databaser">Databaser</option>
+                <option value="nettverk">Nettverk</option>
+                <option value="operativsystemer">Operativsystemer</option>
+                <option value="annet">Annet</option>
+              </select>
+            </div>
+            
+            <div class="mb-3">
+              <label for="sort" class="form-label">Sorter etter</label>
+              <select class="form-select" id="sort" name="sort">
+                <option value="newest">Nyeste først</option>
+                <option value="oldest">Eldste først</option>
+                <option value="az">A-Z</option>
+                <option value="za">Z-A</option>
+              </select>
+            </div>
+            
+            <div class="d-grid">
+              <button type="submit" class="btn btn-outline-primary">Filtrer</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-md-9">
+      <div id="alert-container"></div>
+      
+      <% if (quizzes && quizzes.length > 0) { %>
+        <div class="row">
+          <% quizzes.forEach(quiz => { %>
+            <div class="col-lg-6 mb-4">
+              <div class="card h-100 quiz-card">
+                <div class="card-body">
+                  <h5 class="card-title"><%= quiz.title %></h5>
+                  <p class="card-text text-muted">
+                    <%= quiz.description.length > 120 ? quiz.description.substring(0, 120) + '...' : quiz.description %>
+                  </p>
+                  <p class="card-text">
+                    <small class="text-muted">
+                      <i class="bi bi-tag"></i> <%= quiz.category %> &bull; 
+                      <i class="bi bi-question-circle"></i> <%= quiz.questions.length %> spørsmål &bull;
+                      <i class="bi bi-person"></i> <%= quiz.creator.username %>
+                    </small>
+                  </p>
+                </div>
+                <div class="card-footer bg-white">
+                  <a href="/quiz/<%= quiz._id %>" class="btn btn-primary">Ta quiz</a>
+                  <% if (locals.user && quiz.creator._id.toString() === locals.user._id.toString()) { %>
+                    <a href="/quiz/<%= quiz._id %>/edit" class="btn btn-outline-secondary">Rediger</a>
+                  <% } %>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info">
+          Ingen quizzer funnet. <% if (locals.user) { %><a href="/quiz/create/new">Lag den første quizzen!</a><% } %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('filter-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const category = document.getElementById('category').value;
+    const sort = document.getElementById('sort').value;
+    
+    // Build query string
+    let queryString = '';
+    if (category) {
+      queryString += `category=${encodeURIComponent(category)}`;
+    }
+    
+    if (sort) {
+      if (queryString) queryString += '&';
+      queryString += `sort=${sort}`;
+    }
+    
+    // Redirect with filters
+    window.location.href = `/quiz${queryString ? '?' + queryString : ''}`;
+  });
+</script>

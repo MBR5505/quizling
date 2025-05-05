@@ -1,0 +1,959 @@
+<div class="container-fluid">
+  <div class="row mb-3">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Hjem</a></li>
+          <li class="breadcrumb-item"><a href="/quiz">Quizzer</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Lag ny quiz</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+  
+  <!-- Quiz header with title input -->
+  <div class="row mb-4">
+    <div class="col-md-8 offset-md-2">
+      <div class="quiz-header-container bg-primary text-white p-4 rounded shadow">
+        <div class="form-floating mb-3">
+          <input type="text" class="form-control form-control-lg bg-primary text-white border-0 shadow-none" id="quiz-title" placeholder="Quiztittel" autocomplete="off">
+          <label for="quiz-title" class="text-white">Quiztittel</label>
+        </div>
+        <div class="form-floating">
+          <textarea class="form-control bg-primary text-white border-0 shadow-none" id="quiz-description" placeholder="Beskrivelse" style="height: 80px"></textarea>
+          <label for="quiz-description" class="text-white">Beskrivelse</label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main quiz editor -->
+  <div class="row">
+    <!-- Left sidebar for quiz settings -->
+    <div class="col-md-3 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Quiz innstillinger</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="category" class="form-label">Kategori</label>
+            <select class="form-select" id="category">
+              <option value="">Velg kategori...</option>
+              <option value="programmering">Programmering</option>
+              <option value="databaser">Databaser</option>
+              <option value="nettverk">Nettverk</option>
+              <option value="operativsystemer">Operativsystemer</option>
+              <option value="annet">Annet</option>
+            </select>
+          </div>
+          
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="isPublished">
+            <label class="form-check-label" for="isPublished">Publiser quiz</label>
+          </div>
+          
+          <hr>
+          
+          <div class="mb-3">
+            <label class="form-label d-block">Quiz-spørsmål</label>
+            <div id="questions-list" class="list-group mb-3">
+              <!-- Questions will be added here dynamically -->
+            </div>
+            <button type="button" id="add-question-btn" class="btn btn-outline-primary w-100">
+              <i class="bi bi-plus-circle me-1"></i> Legg til spørsmål
+            </button>
+          </div>
+          
+          <hr>
+          
+          <div class="d-grid gap-2">
+            <button type="button" id="save-quiz-btn" class="btn btn-primary">
+              <i class="bi bi-save me-1"></i> Lagre quiz
+            </button>
+            <a href="/quiz" class="btn btn-outline-secondary">Avbryt</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main question editor area -->
+    <div class="col-md-9">
+      <div class="question-editor-container">
+        <!-- Quiz progress bar -->
+        <div class="progress mb-2" style="height: 5px;">
+          <div id="quiz-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+        </div>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="question-navigation">
+            <button type="button" id="prev-question" class="btn btn-outline-secondary" disabled>
+              <i class="bi bi-arrow-left"></i>
+            </button>
+            <button type="button" id="next-question" class="btn btn-outline-secondary ms-2">
+              <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+          <div class="slide-counter">
+            Slide <span id="current-slide">1</span>/<span id="total-slides">1</span>
+          </div>
+        </div>
+        
+        <!-- Question editor -->
+        <div class="card shadow mb-4">
+          <div class="card-body p-4">
+            <div id="question-editors-container">
+              <!-- Question editors will be added here dynamically -->
+              <div class="question-editor" data-question-index="0">
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between">
+                    <div class="question-type-selector w-50 me-2">
+                      <label class="form-label">Spørsmålstype</label>
+                      <select class="form-select question-type">
+                        <option value="multiple-choice">Flervalgsoppgave</option>
+                        <option value="true-false">Sant/usant</option>
+                        <option value="short-answer">Kort svar</option>
+                        <option value="poll">Meningsmåling</option>
+                      </select>
+                    </div>
+                    
+                    <div class="question-points w-25">
+                      <label class="form-label">Poeng</label>
+                      <input type="number" class="form-control" value="1" min="1" max="10">
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Spørsmålstekst</label>
+                  <input type="text" class="form-control form-control-lg question-text" placeholder="Skriv spørsmålet ditt her...">
+                </div>
+                
+                <div class="mb-3">
+                  <label class="form-label">Bilde (valgfritt)</label>
+                  <div class="image-upload-container border rounded p-3 text-center position-relative">
+                    <div class="image-preview-container d-none mb-3">
+                      <img src="" class="img-fluid question-image-preview" style="max-height: 200px;">
+                    </div>
+                    <div class="upload-prompt">
+                      <i class="bi bi-cloud-upload display-4"></i>
+                      <p>Dra og slipp bilde her, eller <span class="text-primary browse-link">bla gjennom filer</span></p>
+                      <small class="text-muted">Støtter JPEG, PNG, GIF (maks 2MB)</small>
+                    </div>
+                    <input type="file" class="question-image-input d-none" accept="image/*">
+                    <div class="image-upload-loading d-none">
+                      <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Laster opp...</span>
+                      </div>
+                      <p class="mt-2">Laster opp bilde...</p>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2 remove-image-btn d-none">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Options container (changes based on question type) -->
+                <div class="options-container">
+                  <!-- Default is multiple choice -->
+                  <div class="multiple-choice-options">
+                    <label class="form-label">Svaralternativer (merk av for riktig svar)</label>
+                    <div class="options-list">
+                      <div class="option-row mb-2 d-flex align-items-center">
+                        <div class="form-check me-2">
+                          <input class="form-check-input option-correct" type="checkbox">
+                        </div>
+                        <input type="text" class="form-control option-text" placeholder="Svaralternativ 1">
+                        <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+                          <i class="bi bi-x"></i>
+                        </button>
+                      </div>
+                      <div class="option-row mb-2 d-flex align-items-center">
+                        <div class="form-check me-2">
+                          <input class="form-check-input option-correct" type="checkbox">
+                        </div>
+                        <input type="text" class="form-control option-text" placeholder="Svaralternativ 2">
+                        <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+                          <i class="bi bi-x"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-outline-secondary mt-2 add-option-btn">
+                      <i class="bi bi-plus"></i> Legg til svaralternativ
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Templates for different question types -->
+<template id="true-false-template">
+  <div class="true-false-options">
+    <label class="form-label">Velg riktig svar</label>
+    <div class="form-check mb-2">
+      <input class="form-check-input" type="radio" name="tfAnswer" id="tf-true" value="true" checked>
+      <label class="form-check-label" for="tf-true">Sant</label>
+    </div>
+    <div class="form-check">
+      <input class="form-check-input" type="radio" name="tfAnswer" id="tf-false" value="false">
+      <label class="form-check-label" for="tf-false">Usant</label>
+    </div>
+  </div>
+</template>
+
+<template id="short-answer-template">
+  <div class="short-answer-options">
+    <label class="form-label">Riktig svar</label>
+    <input type="text" class="form-control correct-answer" placeholder="Skriv inn det riktige svaret">
+    <small class="form-text text-muted">Svaret er ikke case-sensitivt</small>
+  </div>
+</template>
+
+<template id="poll-template">
+  <div class="poll-options">
+    <label class="form-label">Svaralternativer (ingen riktige svar for meningsmåling)</label>
+    <div class="options-list">
+      <div class="option-row mb-2 d-flex align-items-center">
+        <input type="text" class="form-control option-text" placeholder="Alternativ 1">
+        <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+      <div class="option-row mb-2 d-flex align-items-center">
+        <input type="text" class="form-control option-text" placeholder="Alternativ 2">
+        <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+          <i class="bi bi-x"></i>
+        </button>
+      </div>
+    </div>
+    <button type="button" class="btn btn-outline-secondary mt-2 add-option-btn">
+      <i class="bi bi-plus"></i> Legg til alternativ
+    </button>
+  </div>
+</template>
+
+<template id="option-row-template">
+  <div class="option-row mb-2 d-flex align-items-center">
+    <div class="form-check me-2">
+      <input class="form-check-input option-correct" type="checkbox">
+    </div>
+    <input type="text" class="form-control option-text" placeholder="Svaralternativ">
+    <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+</template>
+
+<template id="poll-option-row-template">
+  <div class="option-row mb-2 d-flex align-items-center">
+    <input type="text" class="form-control option-text" placeholder="Alternativ">
+    <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+</template>
+
+<template id="question-list-item-template">
+  <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+    <span class="question-title overflow-hidden text-truncate" style="max-width: 80%;">Nytt spørsmål</span>
+    <span class="badge bg-primary rounded-pill question-number">1</span>
+  </button>
+</template>
+
+<style>
+  /* Custom styles for the quiz editor */
+  .quiz-header-container {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  }
+
+  .quiz-header-container input, .quiz-header-container textarea {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+  }
+
+  .quiz-header-container input:focus, .quiz-header-container textarea:focus {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    box-shadow: none;
+  }
+
+  .question-editor-container {
+    min-height: 600px;
+    transition: all 0.3s ease;
+  }
+
+  .image-upload-container {
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px dashed #dee2e6 !important;
+    transition: all 0.3s ease;
+  }
+
+  .image-upload-container:hover {
+    border-color: #007bff !important;
+    background-color: rgba(0, 123, 255, 0.05);
+  }
+
+  .browse-link {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  .option-row {
+    transition: all 0.2s ease;
+  }
+
+  .option-row:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    border-radius: 0.25rem;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Global variables
+    let questions = [{ 
+      type: 'multiple-choice',
+      text: '',
+      image: null,
+      points: 1,
+      options: [
+        { text: '', isCorrect: false },
+        { text: '', isCorrect: false }
+      ]
+    }];
+    let currentQuestionIndex = 0;
+    
+    // DOM Elements
+    const quizTitle = document.getElementById('quiz-title');
+    const quizDescription = document.getElementById('quiz-description');
+    const categorySelect = document.getElementById('category');
+    const isPublishedCheckbox = document.getElementById('isPublished');
+    const questionsList = document.getElementById('questions-list');
+    const addQuestionBtn = document.getElementById('add-question-btn');
+    const saveQuizBtn = document.getElementById('save-quiz-btn');
+    const prevQuestionBtn = document.getElementById('prev-question');
+    const nextQuestionBtn = document.getElementById('next-question');
+    const currentSlideElement = document.getElementById('current-slide');
+    const totalSlidesElement = document.getElementById('total-slides');
+    const quizProgressBar = document.getElementById('quiz-progress');
+    const questionEditorsContainer = document.getElementById('question-editors-container');
+    
+    // Initialize the editor
+    function initializeEditor() {
+      updateQuestionsList();
+      updateNavigationState();
+      setupEventListeners();
+    }
+    
+    // Update the questions list in the sidebar
+    function updateQuestionsList() {
+      questionsList.innerHTML = '';
+      questions.forEach((question, index) => {
+        const template = document.getElementById('question-list-item-template');
+        const clone = document.importNode(template.content, true);
+        const listItem = clone.querySelector('.list-group-item');
+        
+        const title = listItem.querySelector('.question-title');
+        title.textContent = question.text || `Spørsmål ${index + 1}`;
+        
+        const badge = listItem.querySelector('.question-number');
+        badge.textContent = index + 1;
+        
+        // Highlight the current question
+        if (index === currentQuestionIndex) {
+          listItem.classList.add('active');
+        }
+        
+        listItem.addEventListener('click', () => {
+          switchToQuestion(index);
+        });
+        
+        questionsList.appendChild(listItem);
+      });
+    }
+    
+    // Update navigation buttons and progress
+    function updateNavigationState() {
+      // Update slide counter
+      currentSlideElement.textContent = currentQuestionIndex + 1;
+      totalSlidesElement.textContent = questions.length;
+      
+      // Update progress bar
+      const progressPercentage = ((currentQuestionIndex + 1) / questions.length) * 100;
+      quizProgressBar.style.width = `${progressPercentage}%`;
+      
+      // Update navigation buttons
+      prevQuestionBtn.disabled = currentQuestionIndex === 0;
+      
+      // Change next button icon based on whether it's the last question
+      if (currentQuestionIndex === questions.length - 1) {
+        nextQuestionBtn.innerHTML = '<i class="bi bi-plus"></i>';
+        nextQuestionBtn.classList.add('btn-primary');
+        nextQuestionBtn.classList.remove('btn-outline-secondary');
+      } else {
+        nextQuestionBtn.innerHTML = '<i class="bi bi-arrow-right"></i>';
+        nextQuestionBtn.classList.remove('btn-primary');
+        nextQuestionBtn.classList.add('btn-outline-secondary');
+      }
+    }
+    
+    // Switch to a specific question
+    function switchToQuestion(index) {
+      // Save current question data
+      saveCurrentQuestionData();
+      
+      // Update current index
+      currentQuestionIndex = index;
+      
+      // Render the question editor
+      renderQuestionEditor();
+      
+      // Update UI states
+      updateQuestionsList();
+      updateNavigationState();
+    }
+    
+    // Render the question editor for the current question
+    function renderQuestionEditor() {
+      const question = questions[currentQuestionIndex];
+      const editor = questionEditorsContainer.querySelector('.question-editor');
+      
+      // Set question type
+      editor.querySelector('.question-type').value = question.type;
+      
+      // Set question text
+      editor.querySelector('.question-text').value = question.text || '';
+      
+      // Set points
+      editor.querySelector('.question-points input').value = question.points || 1;
+      
+      // Handle image
+      const imagePreviewContainer = editor.querySelector('.image-preview-container');
+      const removeImageBtn = editor.querySelector('.remove-image-btn');
+      
+      if (question.image) {
+        const imagePreview = editor.querySelector('.question-image-preview');
+        imagePreview.src = question.image;
+        imagePreviewContainer.classList.remove('d-none');
+        removeImageBtn.classList.remove('d-none');
+      } else {
+        imagePreviewContainer.classList.add('d-none');
+        removeImageBtn.classList.add('d-none');
+      }
+      
+      // Render options based on question type
+      renderQuestionOptions(editor, question);
+    }
+    
+    // Render question options based on type
+    function renderQuestionOptions(editor, question) {
+      const optionsContainer = editor.querySelector('.options-container');
+      
+      // Clear the options container
+      optionsContainer.innerHTML = '';
+      
+      if (question.type === 'multiple-choice') {
+        const template = `
+          <div class="multiple-choice-options">
+            <label class="form-label">Svaralternativer (merk av for riktig svar)</label>
+            <div class="options-list">
+              ${renderMultipleChoiceOptions(question.options)}
+            </div>
+            <button type="button" class="btn btn-outline-secondary mt-2 add-option-btn">
+              <i class="bi bi-plus"></i> Legg til svaralternativ
+            </button>
+          </div>
+        `;
+        optionsContainer.innerHTML = template;
+      } 
+      else if (question.type === 'true-false') {
+        const template = document.getElementById('true-false-template');
+        const clone = document.importNode(template.content, true);
+        
+        // Set the correct answer if it exists
+        if (question.options && question.options.length === 2) {
+          const trueRadio = clone.querySelector('#tf-true');
+          const falseRadio = clone.querySelector('#tf-false');
+          
+          trueRadio.checked = question.options[0].isCorrect;
+          falseRadio.checked = question.options[1].isCorrect;
+          
+          // Generate unique names to prevent radio button conflicts
+          const radioName = `tf-${currentQuestionIndex}`;
+          trueRadio.setAttribute('name', radioName);
+          falseRadio.setAttribute('name', radioName);
+          
+          // Update IDs for the labels
+          const trueId = `tf-true-${currentQuestionIndex}`;
+          const falseId = `tf-false-${currentQuestionIndex}`;
+          
+          trueRadio.id = trueId;
+          falseRadio.id = falseId;
+          
+          clone.querySelector('label[for="tf-true"]').setAttribute('for', trueId);
+          clone.querySelector('label[for="tf-false"]').setAttribute('for', falseId);
+        }
+        
+        optionsContainer.appendChild(clone);
+      } 
+      else if (question.type === 'short-answer') {
+        const template = document.getElementById('short-answer-template');
+        const clone = document.importNode(template.content, true);
+        
+        // Set the correct answer if it exists
+        if (question.correctAnswer) {
+          clone.querySelector('.correct-answer').value = question.correctAnswer;
+        }
+        
+        optionsContainer.appendChild(clone);
+      }
+      else if (question.type === 'poll') {
+        const template = document.getElementById('poll-template');
+        const clone = document.importNode(template.content, true);
+        
+        // Replace options list with actual options
+        const optionsList = clone.querySelector('.options-list');
+        optionsList.innerHTML = renderPollOptions(question.options);
+        
+        optionsContainer.appendChild(clone);
+      }
+      
+      // Add event listeners for the new options
+      setupOptionsEventListeners(optionsContainer);
+    }
+    
+    // Render HTML for multiple choice options
+    function renderMultipleChoiceOptions(options) {
+      if (!options || !options.length) {
+        options = [{ text: '', isCorrect: false }, { text: '', isCorrect: false }];
+      }
+      
+      return options.map((option, index) => `
+        <div class="option-row mb-2 d-flex align-items-center">
+          <div class="form-check me-2">
+            <input class="form-check-input option-correct" type="checkbox" ${option.isCorrect ? 'checked' : ''}>
+          </div>
+          <input type="text" class="form-control option-text" value="${option.text}" placeholder="Svaralternativ ${index + 1}">
+          <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+    
+    // Render HTML for poll options
+    function renderPollOptions(options) {
+      if (!options || !options.length) {
+        options = [{ text: '' }, { text: '' }];
+      }
+      
+      return options.map((option, index) => `
+        <div class="option-row mb-2 d-flex align-items-center">
+          <input type="text" class="form-control option-text" value="${option.text}" placeholder="Alternativ ${index + 1}">
+          <button type="button" class="btn btn-outline-danger ms-2 remove-option-btn">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+    
+    // Save the current question data
+    function saveCurrentQuestionData() {
+      const editor = questionEditorsContainer.querySelector('.question-editor');
+      const question = questions[currentQuestionIndex];
+      
+      // Save basic question data
+      question.type = editor.querySelector('.question-type').value;
+      question.text = editor.querySelector('.question-text').value;
+      question.points = parseInt(editor.querySelector('.question-points input').value) || 1;
+      
+      // Save options based on question type
+      if (question.type === 'multiple-choice') {
+        question.options = [];
+        editor.querySelectorAll('.option-row').forEach(row => {
+          question.options.push({
+            text: row.querySelector('.option-text').value,
+            isCorrect: row.querySelector('.option-correct').checked
+          });
+        });
+      } 
+      else if (question.type === 'true-false') {
+        const trueChecked = editor.querySelector('input[value="true"]').checked;
+        question.options = [
+          { text: 'Sant', isCorrect: trueChecked },
+          { text: 'Usant', isCorrect: !trueChecked }
+        ];
+      }
+      else if (question.type === 'short-answer') {
+        question.correctAnswer = editor.querySelector('.correct-answer').value;
+        // Clear options for short answer
+        question.options = [];
+      }
+      else if (question.type === 'poll') {
+        question.options = [];
+        editor.querySelectorAll('.option-row').forEach(row => {
+          question.options.push({
+            text: row.querySelector('.option-text').value,
+            isCorrect: false // No correct answers in polls
+          });
+        });
+      }
+      
+      // Update the questions list
+      updateQuestionsList();
+    }
+    
+    // Add a new question
+    function addNewQuestion() {
+      // Save current question data first
+      saveCurrentQuestionData();
+      
+      // Add new question
+      questions.push({
+        type: 'multiple-choice',
+        text: '',
+        image: null,
+        points: 1,
+        options: [
+          { text: '', isCorrect: false },
+          { text: '', isCorrect: false }
+        ]
+      });
+      
+      // Switch to the new question
+      switchToQuestion(questions.length - 1);
+    }
+    
+    // Setup event listeners for the options
+    function setupOptionsEventListeners(container) {
+      // Add option button
+      const addOptionBtn = container.querySelector('.add-option-btn');
+      if (addOptionBtn) {
+        addOptionBtn.addEventListener('click', () => {
+          const optionsList = container.querySelector('.options-list');
+          const questionType = questions[currentQuestionIndex].type;
+          
+          if (questionType === 'multiple-choice') {
+            const template = document.getElementById('option-row-template');
+            const clone = document.importNode(template.content, true);
+            optionsList.appendChild(clone);
+          } 
+          else if (questionType === 'poll') {
+            const template = document.getElementById('poll-option-row-template');
+            const clone = document.importNode(template.content, true);
+            optionsList.appendChild(clone);
+          }
+        });
+      }
+      
+      // Remove option buttons (using event delegation)
+      container.addEventListener('click', (e) => {
+        if (e.target.closest('.remove-option-btn')) {
+          const optionRow = e.target.closest('.option-row');
+          const optionsList = optionRow.parentElement;
+          
+          // Don't remove if there are only two options
+          if (optionsList.children.length > 2) {
+            optionRow.remove();
+          } else {
+            alert('Du må ha minst to svaralternativer.');
+          }
+        }
+      });
+    }
+    
+    // Setup image upload functionality
+    function setupImageUpload() {
+      const uploadContainer = document.querySelector('.image-upload-container');
+      const fileInput = uploadContainer.querySelector('.question-image-input');
+      const browseLink = uploadContainer.querySelector('.browse-link');
+      const removeBtn = uploadContainer.querySelector('.remove-image-btn');
+      const previewContainer = uploadContainer.querySelector('.image-preview-container');
+      const previewImg = uploadContainer.querySelector('.question-image-preview');
+      
+      // Open file dialog when clicking the container or browse link
+      uploadContainer.addEventListener('click', () => {
+        if (!previewContainer.classList.contains('d-none')) return;
+        fileInput.click();
+      });
+      
+      browseLink.addEventListener('click', (e) => {
+        e.stopPropagation();
+        fileInput.click();
+      });
+      
+      // Handle drag and drop
+      uploadContainer.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadContainer.style.borderColor = '#007bff';
+        uploadContainer.style.backgroundColor = 'rgba(0, 123, 255, 0.1)';
+      });
+      
+      uploadContainer.addEventListener('dragleave', () => {
+        uploadContainer.style.borderColor = '#dee2e6';
+        uploadContainer.style.backgroundColor = '';
+      });
+      
+      uploadContainer.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadContainer.style.borderColor = '#dee2e6';
+        uploadContainer.style.backgroundColor = '';
+        
+        if (e.dataTransfer.files.length) {
+          handleImageUpload(e.dataTransfer.files[0]);
+        }
+      });
+      
+      // Handle file selection
+      fileInput.addEventListener('change', () => {
+        if (fileInput.files.length) {
+          handleImageUpload(fileInput.files[0]);
+        }
+      });
+      
+      // Remove image button
+      removeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        questions[currentQuestionIndex].image = null;
+        previewContainer.classList.add('d-none');
+        removeBtn.classList.add('d-none');
+        previewImg.src = '';
+      });
+      
+      // Function to handle image upload
+      function handleImageUpload(file) {
+        // Check file type
+        if (!file.type.match('image.*')) {
+          alert('Vennligst velg et bilde (JPEG, PNG, GIF).');
+          return;
+        }
+        
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Bildet må være under 2MB.');
+          return;
+        }
+        
+        // Show loading state
+        const loadingElement = uploadContainer.querySelector('.image-upload-loading');
+        loadingElement.classList.remove('d-none');
+        
+        // Use FileReader to read and display the image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Set the image in the question data
+          questions[currentQuestionIndex].image = e.target.result;
+          
+          // Update the preview
+          previewImg.src = e.target.result;
+          previewContainer.classList.remove('d-none');
+          removeBtn.classList.remove('d-none');
+          loadingElement.classList.add('d-none');
+        };
+        
+        reader.onerror = () => {
+          alert('Det oppstod en feil ved lesing av bildet.');
+          loadingElement.classList.add('d-none');
+        };
+        
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    // Setup all event listeners
+    function setupEventListeners() {
+      // Question type change
+      const questionType = document.querySelector('.question-type');
+      questionType.addEventListener('change', function() {
+        // Save the current question type
+        const question = questions[currentQuestionIndex];
+        question.type = this.value;
+        
+        // Render the options for this type
+        const editor = questionEditorsContainer.querySelector('.question-editor');
+        renderQuestionOptions(editor, question);
+      });
+      
+      // Navigation buttons
+      prevQuestionBtn.addEventListener('click', () => {
+        if (currentQuestionIndex > 0) {
+          switchToQuestion(currentQuestionIndex - 1);
+        }
+      });
+      
+      nextQuestionBtn.addEventListener('click', () => {
+        if (currentQuestionIndex === questions.length - 1) {
+          // Add new question if we're at the last one
+          addNewQuestion();
+        } else {
+          // Otherwise go to next question
+          switchToQuestion(currentQuestionIndex + 1);
+        }
+      });
+      
+      // Add question button
+      addQuestionBtn.addEventListener('click', addNewQuestion);
+      
+      // Save quiz button
+      saveQuizBtn.addEventListener('click', saveQuiz);
+      
+      // Setup image upload
+      setupImageUpload();
+    }
+    
+    // Save the quiz to the server
+    async function saveQuiz() {
+      // Save the current question data
+      saveCurrentQuestionData();
+      
+      // Validate quiz data
+      if (!validateQuizData()) {
+        return;
+      }
+      
+      // Prepare the quiz data
+      const quizData = {
+        title: quizTitle.value,
+        description: quizDescription.value,
+        category: categorySelect.value,
+        isPublished: isPublishedCheckbox.checked,
+        questions: questions
+      };
+      
+      // Display loading state
+      saveQuizBtn.disabled = true;
+      saveQuizBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Lagrer...';
+      
+      try {
+        // Send data to server
+        const response = await fetch('/quiz/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(quizData)
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(result.errors || 'Det oppstod en feil ved lagring av quizzen.');
+        }
+        
+        // Redirect to the new quiz
+        window.location.href = `/quiz/${result.quiz._id}`;
+      } catch (error) {
+        alert('Feil: ' + error.message);
+        
+        // Reset button state
+        saveQuizBtn.disabled = false;
+        saveQuizBtn.innerHTML = '<i class="bi bi-save me-1"></i> Lagre quiz';
+      }
+    }
+    
+    // Validate the quiz data
+    function validateQuizData() {
+      let isValid = true;
+      
+      // Check title and description
+      if (!quizTitle.value.trim()) {
+        alert('Vennligst fyll inn en tittel for quizzen.');
+        quizTitle.focus();
+        return false;
+      }
+      
+      if (!quizDescription.value.trim()) {
+        alert('Vennligst fyll inn en beskrivelse for quizzen.');
+        quizDescription.focus();
+        return false;
+      }
+      
+      if (!categorySelect.value) {
+        alert('Vennligst velg en kategori for quizzen.');
+        categorySelect.focus();
+        return false;
+      }
+      
+      // Check if there are any questions
+      if (questions.length === 0) {
+        alert('Quizzen må ha minst ett spørsmål.');
+        return false;
+      }
+      
+      // Check each question
+      for (let i = 0; i < questions.length; i++) {
+        const question = questions[i];
+        
+        // Check question text
+        if (!question.text.trim()) {
+          alert(`Spørsmål ${i + 1} mangler tekst.`);
+          switchToQuestion(i);
+          return false;
+        }
+        
+        // Check options based on question type
+        if (question.type === 'multiple-choice') {
+          // Check if there are at least 2 options
+          if (!question.options || question.options.length < 2) {
+            alert(`Spørsmål ${i + 1} må ha minst to svaralternativer.`);
+            switchToQuestion(i);
+            return false;
+          }
+          
+          // Check if at least one option is marked as correct
+          if (!question.options.some(opt => opt.isCorrect)) {
+            alert(`Spørsmål ${i + 1} må ha minst ett riktig svar markert.`);
+            switchToQuestion(i);
+            return false;
+          }
+          
+          // Check if all options have text
+          if (question.options.some(opt => !opt.text.trim())) {
+            alert(`Alle svaralternativer i spørsmål ${i + 1} må ha tekst.`);
+            switchToQuestion(i);
+            return false;
+          }
+        } 
+        else if (question.type === 'short-answer') {
+          // Check if there is a correct answer
+          if (!question.correctAnswer || !question.correctAnswer.trim()) {
+            alert(`Spørsmål ${i + 1} må ha et riktig svar angitt.`);
+            switchToQuestion(i);
+            return false;
+          }
+        }
+        else if (question.type === 'poll') {
+          // Check if there are at least 2 options
+          if (!question.options || question.options.length < 2) {
+            alert(`Spørsmål ${i + 1} må ha minst to alternativer.`);
+            switchToQuestion(i);
+            return false;
+          }
+          
+          // Check if all options have text
+          if (question.options.some(opt => !opt.text.trim())) {
+            alert(`Alle alternativer i spørsmål ${i + 1} må ha tekst.`);
+            switchToQuestion(i);
+            return false;
+          }
+        }
+      }
+      
+      return isValid;
+    }
+    
+    // Initialize the editor
+    initializeEditor();
+  });
+</script>

@@ -1,0 +1,35 @@
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h1 class="mb-3">Quiz Kategorier</h1>
+      <p class="lead">Bla gjennom quizzer etter emne</p>
+    </div>
+  </div>
+  
+  <div class="row">
+    <% categories.forEach(category => { %>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100 category-card">
+          <div class="card-body">
+            <h5 class="card-title"><%= category.name %></h5>
+            <p class="card-text text-muted"><%= category.count %> quizzer</p>
+          </div>
+          <div class="card-footer bg-white">
+            <a href="/quiz?category=<%= category.slug %>" class="btn btn-primary stretched-link">Se quizzer</a>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+</div>
+
+<style>
+  .category-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  }
+</style>

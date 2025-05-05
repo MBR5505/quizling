@@ -1,0 +1,264 @@
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin/dashboard">
+              <i class="bi bi-speedometer2 me-2"></i> Dashbord
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/users">
+              <i class="bi bi-people me-2"></i> Brukere
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/quizzes">
+              <i class="bi bi-question-circle me-2"></i> Quizzer
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/reports">
+              <i class="bi bi-flag me-2"></i> Rapporter
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/settings">
+              <i class="bi bi-gear me-2"></i> Innstillinger
+            </a>
+          </li>
+        </ul>
+        
+        <hr>
+        
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="bi bi-arrow-left me-2"></i> Tilbake til nettstedet
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Main content -->
+    <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Admin dashboard</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Del</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Eksporter</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Dashboard cards -->
+      <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-primary">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Totalt antall brukere</h5>
+                  <h2 class="display-6 fw-bold"><%= stats.userCount %></h2>
+                </div>
+                <div>
+                  <i class="bi bi-people fs-1"></i>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+              <a href="/admin/users" class="text-white text-decoration-none">Se detaljer</a>
+              <div><i class="bi bi-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-success">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Antall quizzer</h5>
+                  <h2 class="display-6 fw-bold"><%= stats.quizCount %></h2>
+                </div>
+                <div>
+                  <i class="bi bi-question-circle fs-1"></i>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+              <a href="/admin/quizzes" class="text-white text-decoration-none">Se detaljer</a>
+              <div><i class="bi bi-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-info">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Quiz forsøk</h5>
+                  <h2 class="display-6 fw-bold"><%= stats.attemptCount %></h2>
+                </div>
+                <div>
+                  <i class="bi bi-check2-circle fs-1"></i>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+              <a href="#" class="text-white text-decoration-none">Se statistikk</a>
+              <div><i class="bi bi-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+          <div class="card text-white bg-warning">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <h5 class="card-title">Rapporter</h5>
+                  <h2 class="display-6 fw-bold"><%= stats.reportCount %></h2>
+                </div>
+                <div>
+                  <i class="bi bi-flag fs-1"></i>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer d-flex align-items-center justify-content-between">
+              <a href="/admin/reports" class="text-white text-decoration-none">Håndter rapporter</a>
+              <div><i class="bi bi-chevron-right"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recent users and quizzes -->
+      <div class="row">
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Nyeste brukere</h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="list-group list-group-flush">
+                <% recentUsers.forEach(user => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="mb-0"><%= user.username %></h6>
+                        <small class="text-muted"><%= user.email %></small>
+                      </div>
+                      <small class="text-muted"><%= new Date(user.createdAt).toLocaleDateString('nb-NO') %></small>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+            <div class="card-footer bg-white">
+              <a href="/admin/users" class="btn btn-sm btn-outline-primary">Se alle brukere</a>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+          <div class="card">
+            <div class="card-header bg-light">
+              <h5 class="mb-0">Nyeste quizzer</h5>
+            </div>
+            <div class="card-body p-0">
+              <div class="list-group list-group-flush">
+                <% recentQuizzes.forEach(quiz => { %>
+                  <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="mb-0"><%= quiz.title %></h6>
+                        <small class="text-muted">Opprettet av: <%= quiz.creator.username %></small>
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <% if (quiz.isPublished) { %>
+                          <span class="badge bg-success me-2">Publisert</span>
+                        <% } else { %>
+                          <span class="badge bg-warning text-dark me-2">Utkast</span>
+                        <% } %>
+                        <small class="text-muted"><%= new Date(quiz.createdAt).toLocaleDateString('nb-NO') %></small>
+                      </div>
+                    </div>
+                  </div>
+                <% }); %>
+              </div>
+            </div>
+            <div class="card-footer bg-white">
+              <a href="/admin/quizzes" class="btn btn-sm btn-outline-primary">Se alle quizzer</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- System activity -->
+      <h3>System aktivitet</h3>
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">Aktivitetslogg</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Handling</th>
+                  <th>Bruker</th>
+                  <th>Detaljer</th>
+                  <th>Dato</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% activityLog.forEach(log => { %>
+                  <tr>
+                    <td><%= log.action %></td>
+                    <td><%= log.username %></td>
+                    <td><%= log.details %></td>
+                    <td><%= new Date(log.timestamp).toLocaleString('nb-NO') %></td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+    padding: 48px 0 0;
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+  }
+  
+  .sidebar .nav-link {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .sidebar .nav-link.active {
+    color: #007bff;
+  }
+  
+  @media (max-width: 767.98px) {
+    .sidebar {
+      position: static;
+      padding-top: 1.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,271 @@
+<div class="container">
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Min profil</h4>
+        </div>
+        <div class="card-body">
+          <div class="text-center mb-4">
+            <div class="bg-light rounded-circle d-inline-flex justify-content-center align-items-center" style="width: 120px; height: 120px;">
+              <span class="fs-1 text-primary"><%= user.username.charAt(0).toUpperCase() %></span>
+            </div>
+            <h3 class="mt-3"><%= user.username %></h3>
+            <p class="text-muted"><%= user.email %></p>
+          </div>
+          
+          <hr>
+          
+          <div class="mb-3">
+            <strong>Medlem siden:</strong> <%= new Date(user.createdAt).toLocaleDateString('nb-NO') %>
+          </div>
+          <div class="mb-3">
+            <strong>Antall quizzer laget:</strong> <span class="badge bg-primary"><%= quizzesCreated %></span>
+          </div>
+          <div class="mb-3">
+            <strong>Antall quizzer fullført:</strong> <span class="badge bg-success"><%= quizzesTaken %></span>
+          </div>
+          <div class="mb-3">
+            <strong>Gjennomsnittlig score:</strong> <span class="badge bg-info"><%= averageScore %>%</span>
+          </div>
+          
+          <div class="d-grid gap-2 mt-4">
+            <a href="/user/edit-profile" class="btn btn-outline-primary">Rediger profil</a>
+            <a href="/user/dashboard" class="btn btn-outline-secondary">Gå til kontrollpanel</a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card mb-4">
+        <div class="card-header bg-success text-white">
+          <h4 class="mb-0">Merker</h4>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-4 mb-3">
+              <div class="badge-container <%= quizzesCreated >= 1 ? 'active' : 'inactive' %>" data-bs-toggle="tooltip" data-bs-placement="top" title="Lag din første quiz">
+                <i class="bi bi-patch-question-fill fs-3"></i>
+                <small class="d-block mt-1">Nybegynner</small>
+              </div>
+            </div>
+            <div class="col-4 mb-3">
+              <div class="badge-container <%= quizzesCreated >= 5 ? 'active' : 'inactive' %>" data-bs-toggle="tooltip" data-bs-placement="top" title="Lag 5 quizzer">
+                <i class="bi bi-patch-check-fill fs-3"></i>
+                <small class="d-block mt-1">Forfatter</small>
+              </div>
+            </div>
+            <div class="col-4 mb-3">
+              <div class="badge-container <%= quizzesCreated >= 10 ? 'active' : 'inactive' %>" data-bs-toggle="tooltip" data-bs-placement="top" title="Lag 10 quizzer">
+                <i class="bi bi-award-fill fs-3"></i>
+                <small class="d-block mt-1">Ekspert</small>
+              </div>
+            </div>
+            <div class="col-4 mb-3">
+              <div class="badge-container <%= quizzesTaken >= 10 ? 'active' : 'inactive' %>" data-bs-toggle="tooltip" data-bs-placement="top" title="Fullfør 10 quizzer">
+                <i class="bi bi-controller fs-3"></i>
+                <small class="d-block mt-1">Spilleren</small>
+              </div>
+            </div>
+            <div class="col-4 mb-3">
+              <div class="badge-container <%= perfectScores >= 5 ? 'active' : 'inactive' %>" data-bs-toggle="tooltip" data-bs-placement="top" title="Få 100% score på 5 quizzer">
+                <i class="bi bi-trophy-fill fs-3"></i>
+                <small class="d-block mt-1">Mester</small>
+              </div>
+            </div>
+            <div class="col-4 mb-3">
+              <div class="badge-container <%= topLeaderboard ? 'active' : 'inactive' %>" data-bs-toggle="tooltip" data-bs-placement="top" title="Nå toppen av en toppliste">
+                <i class="bi bi-star-fill fs-3"></i>
+                <small class="d-block mt-1">Stjerne</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-lg-8">
+      <!-- Nav tabs -->
+      <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="quizzes-tab" data-bs-toggle="tab" data-bs-target="#my-quizzes" type="button" role="tab" aria-controls="my-quizzes" aria-selected="true">Mine quizzer</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#quiz-history" type="button" role="tab" aria-controls="quiz-history" aria-selected="false">Quiz historikk</button>
+        </li>
+      </ul>
+      
+      <!-- Tab content -->
+      <div class="tab-content">
+        <!-- My Quizzes Tab -->
+        <div class="tab-pane fade show active" id="my-quizzes" role="tabpanel" aria-labelledby="quizzes-tab">
+          <% if (quizzes && quizzes.length > 0) { %>
+            <div class="row">
+              <% quizzes.forEach(quiz => { %>
+                <div class="col-md-6 mb-3">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h5 class="card-title"><%= quiz.title %></h5>
+                      <p class="card-text text-muted">
+                        <%= quiz.description.length > 80 ? quiz.description.substring(0, 80) + '...' : quiz.description %>
+                      </p>
+                      <p class="card-text">
+                        <small class="text-muted">
+                          <i class="bi bi-tag"></i> <%= quiz.category %> • 
+                          <i class="bi bi-question-circle"></i> <%= quiz.questions.length %> spørsmål •
+                          <i class="bi bi-calendar"></i> <%= new Date(quiz.createdAt).toLocaleDateString('nb-NO') %>
+                        </small>
+                      </p>
+                      <div class="d-flex align-items-center">
+                        <span class="me-2">Status:</span>
+                        <% if (quiz.isPublished) { %>
+                          <span class="badge bg-success">Publisert</span>
+                        <% } else { %>
+                          <span class="badge bg-warning text-dark">Utkast</span>
+                        <% } %>
+                      </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                      <div class="btn-group w-100">
+                        <a href="/quiz/<%= quiz._id %>" class="btn btn-primary">Se quiz</a>
+                        <a href="/quiz/<%= quiz._id %>/edit" class="btn btn-outline-primary">Rediger</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="alert alert-info">
+              Du har ikke laget noen quizzer ennå. 
+              <a href="/quiz/create/new" class="alert-link">Lag din første quiz!</a>
+            </div>
+          <% } %>
+        </div>
+        
+        <!-- Quiz History Tab -->
+        <div class="tab-pane fade" id="quiz-history" role="tabpanel" aria-labelledby="history-tab">
+          <div id="history-container">
+            <!-- Quiz history will be loaded dynamically -->
+            <div class="text-center my-4">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Laster inn...</span>
+              </div>
+              <p>Laster historikk...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .badge-container {
+    padding: 15px 10px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+  }
+  
+  .badge-container.active {
+    color: #28a745;
+  }
+  
+  .badge-container.inactive {
+    color: #adb5bd;
+    opacity: 0.5;
+  }
+  
+  .badge-container:hover {
+    transform: scale(1.1);
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Enable tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    
+    // Load quiz history when tab is shown
+    document.getElementById('history-tab').addEventListener('shown.bs.tab', loadQuizHistory);
+    
+    // Function to load quiz history
+    async function loadQuizHistory() {
+      const historyContainer = document.getElementById('history-container');
+      
+      try {
+        const response = await fetch('/attempts/user');
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.error || 'Kunne ikke laste quizhistorikk');
+        }
+        
+        if (!data.attempts || data.attempts.length === 0) {
+          historyContainer.innerHTML = '<div class="alert alert-info">Du har ikke fullført noen quizzer ennå.</div>';
+          return;
+        }
+        
+        // Build history HTML
+        let html = `
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Quiz</th>
+                  <th>Kategori</th>
+                  <th>Score</th>
+                  <th>Tid brukt</th>
+                  <th>Dato</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        
+        // Add each attempt
+        data.attempts.forEach(attempt => {
+          // Format score
+          const scorePercentage = attempt.percentageScore;
+          let badgeClass = 'bg-danger';
+          if (scorePercentage >= 80) badgeClass = 'bg-success';
+          else if (scorePercentage >= 60) badgeClass = 'bg-primary';
+          else if (scorePercentage >= 40) badgeClass = 'bg-warning text-dark';
+          
+          // Format time
+          const minutes = Math.floor(attempt.timeSpent / 60);
+          const seconds = attempt.timeSpent % 60;
+          const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+          
+          // Format date
+          const formattedDate = new Date(attempt.completedAt).toLocaleDateString('nb-NO');
+          
+          html += `
+            <tr>
+              <td><a href="/quiz/${attempt.quiz._id}">${attempt.quiz.title}</a></td>
+              <td>${attempt.quiz.category}</td>
+              <td><span class="badge ${badgeClass}">${scorePercentage}%</span></td>
+              <td>${formattedTime}</td>
+              <td>${formattedDate}</td>
+            </tr>
+          `;
+        });
+        
+        html += `
+              </tbody>
+            </table>
+          </div>
+        `;
+        
+        historyContainer.innerHTML = html;
+        
+      } catch (error) {
+        console.error('Error loading quiz history:', error);
+        historyContainer.innerHTML = `
+          <div class="alert alert-danger">
+            Det oppstod en feil ved lasting av quizhistorikk: ${error.message}
+          </div>
+        `;
+      }
+    }
+  });
+</script>

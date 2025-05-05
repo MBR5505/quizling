@@ -1,0 +1,54 @@
+<header>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+      <a class="navbar-brand" href="/">IT Quiz</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/">Hjem</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/quiz">Quizzer</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/faq">FAQ</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about">Om oss</a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <% if (locals.user) { %>
+            <% if (user.role === 'admin') { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/admin/dashboard">Admin</a>
+              </li>
+            <% } %>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <%= user.username %>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                <li><a class="dropdown-item" href="/user/dashboard">Kontrollpanel</a></li>
+                <li><a class="dropdown-item" href="/user/profile">Min profil</a></li>
+                <li><a class="dropdown-item" href="/quiz/create/new">Lag ny quiz</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/auth/logout">Logg ut</a></li>
+              </ul>
+            </li>
+          <% } else { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/auth/login">Logg inn</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/auth/register">Registrer deg</a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

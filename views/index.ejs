@@ -1,0 +1,93 @@
+<div class="hero-section bg-primary text-white py-5 mb-5 text-center rounded">
+  <div class="container">
+    <h1 class="display-3">Velkommen til IT Quiz</h1>
+    <p class="lead">Test dine kunnskaper om IT med våre interaktive quizzer</p>
+    <div class="mt-4">
+      <a href="/quiz" class="btn btn-light btn-lg me-2">Se alle quizzer</a>
+      <% if (locals.user) { %>
+        <a href="/quiz/create/new" class="btn btn-outline-light btn-lg">Lag en quiz</a>
+      <% } else { %>
+        <a href="/auth/register" class="btn btn-outline-light btn-lg">Bli medlem</a>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-8">
+      <h2 class="mb-4">Nyeste quizzer</h2>
+      
+      <% if (quizzes && quizzes.length > 0) { %>
+        <div class="row">
+          <% quizzes.forEach(quiz => { %>
+            <div class="col-md-6 mb-4">
+              <div class="card h-100">
+                <div class="card-body">
+                  <h5 class="card-title"><%= quiz.title %></h5>
+                  <p class="card-text text-muted">
+                    <%= quiz.description.length > 100 ? quiz.description.substring(0, 100) + '...' : quiz.description %>
+                  </p>
+                  <p class="card-text">
+                    <small class="text-muted">
+                      Kategori: <%= quiz.category %> • 
+                      Spørsmål: <%= quiz.questions.length %> •
+                      Av: <%= quiz.creator.username %>
+                    </small>
+                  </p>
+                </div>
+                <div class="card-footer bg-white">
+                  <a href="/quiz/<%= quiz._id %>" class="btn btn-primary">Ta quiz</a>
+                </div>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+        
+        <div class="text-center mt-4">
+          <a href="/quiz" class="btn btn-outline-primary">Se alle quizzer</a>
+        </div>
+      <% } else { %>
+        <div class="alert alert-info">
+          Det finnes ingen quizzer ennå. <% if (locals.user) { %><a href="/quiz/create/new">Lag den første!</a><% } %>
+        </div>
+      <% } %>
+    </div>
+    
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-0">Om IT Quiz</h5>
+        </div>
+        <div class="card-body">
+          <p class="card-text">
+            IT Quiz er en plattform hvor du kan teste dine IT-kunnskaper innen programfagene fra Vg2 IT.
+          </p>
+          <p class="card-text">
+            Bli medlem i dag for å lage og delta i quizzer om temaer som:
+          </p>
+          <ul>
+            <li>Programmering</li>
+            <li>Databaser</li>
+            <li>Nettverk</li>
+            <li>Operativsystemer</li>
+            <li>Og mye mer!</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="card-title mb-0">Raskt i gang</h5>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">1. <a href="/auth/register">Registrer deg</a> eller <a href="/auth/login">logg inn</a></li>
+            <li class="list-group-item">2. <a href="/quiz">Finn en quiz</a> eller <a href="/quiz/create/new">lag din egen</a></li>
+            <li class="list-group-item">3. Test dine kunnskaper og del med venner</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

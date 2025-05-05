@@ -1,0 +1,24 @@
+<div class="container text-center py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <h1 class="display-1 fw-bold">Feil</h1>
+      <p class="display-6 mb-4">
+        <%= typeof message !== 'undefined' ? message : 'Det oppstod en feil' %>
+      </p>
+      <% if (process.env.NODE_ENV === 'development' && typeof error !== 'undefined') { %>
+        <div class="alert alert-danger text-start mb-5">
+          <p><strong>Feildetaljer (kun synlig i utviklingsmodus):</strong></p>
+          <pre><%= JSON.stringify(error, null, 2) %></pre>
+        </div>
+      <% } else { %>
+        <p class="lead mb-5">
+          Det oppstod en feil. Vennligst prøv igjen senere.
+        </p>
+      <% } %>
+      <div>
+        <a href="/" class="btn btn-primary me-2">Gå til forsiden</a>
+        <button class="btn btn-outline-primary" onclick="history.back()">Gå tilbake</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,677 @@
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-12">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Hjem</a></li>
+          <li class="breadcrumb-item"><a href="/quiz">Quizzer</a></li>
+          <li class="breadcrumb-item"><a href="/quiz/<%= quiz._id %>"><%= quiz.title %></a></li>
+          <li class="breadcrumb-item active" aria-current="page">Multiplayer</li>
+        </ol>
+      </nav>
+      <h1 class="mb-3">
+        <i class="bi bi-people-fill me-2"></i>
+        Spill <%= quiz.title %> med andre
+      </h1>
+    </div>
+  </div>
+
+  <!-- Host Game Section (Visible initially) -->
+  <div id="host-section">
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="card-title">Vert spill</h2>
+        <p class="card-text">Opprett et nytt spill og del romkoden med venner.</p>
+        <button id="create-game-btn" class="btn btn-primary">Opprett spill</button>
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 class="card-title">Bli med i spill</h2>
+        <p class="card-text">Har noen sendt deg en romkode? Bli med i deres spill her.</p>
+        <div class="row g-3">
+          <div class="col-md-8">
+            <input type="text" id="room-code-input" class="form-control form-control-lg" placeholder="Romkode" maxlength="6" style="text-transform: uppercase;">
+          </div>
+          <div class="col-md-4 d-grid">
+            <button id="join-game-btn" class="btn btn-success btn-lg">Bli med</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lobby Section (Hidden initially) -->
+  <div id="lobby-section" class="d-none">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h2 class="mb-0 fs-5">Lobby: <span id="room-code-display" class="badge bg-light text-primary">XXXXXX</span></h2>
+        <button id="leave-game-btn" class="btn btn-sm btn-outline-light"><i class="bi bi-box-arrow-right"></i> Forlat</button>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-8">
+            <h3>Deltakere</h3>
+            <ul id="participants-list" class="list-group">
+              <!-- Participants will be added dynamically -->
+            </ul>
+            
+            <div class="alert alert-info mt-3">
+              <div class="d-flex align-items-center">
+                <i class="bi bi-info-circle fs-4 me-2"></i>
+                <div>
+                  <strong>Del romkoden med andre!</strong><br>
+                  De kan bli med ved å skrive inn koden på quizsiden.
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="text-center mb-4">
+              <h3>Quiz</h3>
+              <span class="badge bg-primary fs-5"><%= quiz.title %></span>
+              <p class="mt-2 text-muted"><%= quiz.questions.length %> spørsmål</p>
+            </div>
+            
+            <div class="d-grid gap-2">
+              <button id="toggle-ready-btn" class="btn btn-outline-success">Klar</button>
+              <button id="start-game-btn" class="btn btn-success" disabled>Start spill</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Section (Hidden initially) -->
+  <div id="game-section" class="d-none">
+    <!-- Progress bar and info -->
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="progress flex-grow-1 me-2" style="height: 10px;">
+        <div id="question-progress" class="progress-bar" role="progressbar" style="width: 0%"></div>
+      </div>
+      <div class="game-info">
+        <span id="question-counter">0/0</span> • 
+        <span id="timer-display">00</span>s
+      </div>
+    </div>
+    
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 id="question-text" class="mb-4">Spørsmål</h2>
+        
+        <div id="question-image-container" class="text-center mb-4 d-none">
+          <img id="question-image" class="img-fluid rounded" alt="Spørsmålsbilde" style="max-height: 250px;">
+        </div>
+        
+        <div id="options-container" class="mb-4">
+          <!-- Options will be added dynamically -->
+        </div>
+        
+        <div id="answer-status" class="alert d-none"></div>
+      </div>
+    </div>
+    
+    <!-- Leaderboard -->
+    <div class="card">
+      <div class="card-header bg-primary text-white">
+        <h3 class="mb-0 fs-5">Poengstilling</h3>
+      </div>
+      <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Deltaker</th>
+              <th>Poeng</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-body">
+            <!-- Leaderboard will be added dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section (Hidden initially) -->
+  <div id="results-section" class="d-none">
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h2 class="mb-0 fs-5">Resultater</h2>
+      </div>
+      <div class="card-body">
+        <div class="text-center mb-4">
+          <h3>Vinner!</h3>
+          <div id="winner-display" class="display-6 mb-3"></div>
+          <div id="confetti-container"></div>
+        </div>
+        
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Plassering</th>
+                <th>Deltaker</th>
+                <th>Poeng</th>
+              </tr>
+            </thead>
+            <tbody id="final-results">
+              <!-- Final results will be added dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card-footer text-center">
+        <a href="/quiz/<%= quiz._id %>" class="btn btn-primary me-2">Gå tilbake til quiz</a>
+        <a href="/quiz" class="btn btn-outline-primary">Se alle quizzer</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Get elements
+    const hostSection = document.getElementById('host-section');
+    const lobbySection = document.getElementById('lobby-section');
+    const gameSection = document.getElementById('game-section');
+    const resultsSection = document.getElementById('results-section');
+    
+    const createGameBtn = document.getElementById('create-game-btn');
+    const joinGameBtn = document.getElementById('join-game-btn');
+    const roomCodeInput = document.getElementById('room-code-input');
+    const roomCodeDisplay = document.getElementById('room-code-display');
+    const leaveGameBtn = document.getElementById('leave-game-btn');
+    const toggleReadyBtn = document.getElementById('toggle-ready-btn');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const participantsList = document.getElementById('participants-list');
+    
+    const questionText = document.getElementById('question-text');
+    const questionImageContainer = document.getElementById('question-image-container');
+    const questionImage = document.getElementById('question-image');
+    const optionsContainer = document.getElementById('options-container');
+    const answerStatus = document.getElementById('answer-status');
+    const questionCounter = document.getElementById('question-counter');
+    const timerDisplay = document.getElementById('timer-display');
+    const questionProgress = document.getElementById('question-progress');
+    const leaderboardBody = document.getElementById('leaderboard-body');
+    
+    const winnerDisplay = document.getElementById('winner-display');
+    const finalResults = document.getElementById('final-results');
+    
+    // Game state
+    let socket;
+    let roomCode = null;
+    let isHost = false;
+    let isReady = false;
+    let currentQuestion = null;
+    let questionTimer = null;
+    let timeLeft = 0;
+    let questionStartTime = null;
+    
+    // Connect to socket server
+    function connectSocket() {
+      // Get JWT token if available
+      const token = getCookie('jwt');
+      
+      socket = io({
+        auth: {
+          token
+        }
+      });
+      
+      // Set up socket event handlers
+      setupSocketHandlers();
+    }
+    
+    // Set up socket event handlers
+    function setupSocketHandlers() {
+      socket.on('connect', () => {
+        console.log('Connected to socket server');
+      });
+      
+      socket.on('error', (data) => {
+        alert(data.message || 'En feil oppstod');
+      });
+      
+      socket.on('game-created', (data) => {
+        roomCode = data.roomCode;
+        isHost = true;
+        
+        // Update UI
+        roomCodeDisplay.textContent = roomCode;
+        startGameBtn.disabled = false; // Host can always start the game
+        
+        // Switch to lobby view
+        hostSection.classList.add('d-none');
+        lobbySection.classList.remove('d-none');
+      });
+      
+      socket.on('game-joined', (data) => {
+        roomCode = data.roomCode;
+        isHost = data.host.id === socket.id;
+        
+        // Update UI
+        roomCodeDisplay.textContent = roomCode;
+        startGameBtn.disabled = !isHost;
+        
+        // Switch to lobby view
+        hostSection.classList.add('d-none');
+        lobbySection.classList.remove('d-none');
+      });
+      
+      socket.on('participants-updated', (data) => {
+        updateParticipantsList(data.participants);
+      });
+      
+      socket.on('game-started', () => {
+        // Switch to game view
+        lobbySection.classList.add('d-none');
+        gameSection.classList.remove('d-none');
+      });
+      
+      socket.on('new-question', (data) => {
+        displayQuestion(data);
+      });
+      
+      socket.on('answer-recorded', () => {
+        answerStatus.textContent = 'Ditt svar er registrert!';
+        answerStatus.classList.remove('d-none', 'alert-danger');
+        answerStatus.classList.add('alert-success');
+      });
+      
+      socket.on('question-completed', (data) => {
+        updateLeaderboard(data.scores);
+      });
+      
+      socket.on('game-ended', (data) => {
+        displayResults(data.results);
+      });
+      
+      socket.on('disconnect', () => {
+        console.log('Disconnected from socket server');
+      });
+    }
+    
+    // Create a new game
+    createGameBtn.addEventListener('click', () => {
+      if (!socket) {
+        connectSocket();
+      }
+      
+      socket.emit('create-game', { quizId: '<%= quiz._id %>' });
+    });
+    
+    // Join an existing game
+    joinGameBtn.addEventListener('click', () => {
+      const code = roomCodeInput.value.trim().toUpperCase();
+      
+      if (!code || code.length !== 6) {
+        alert('Vennligst skriv inn en gyldig romkode (6 tegn)');
+        return;
+      }
+      
+      if (!socket) {
+        connectSocket();
+      }
+      
+      // Get username if user is a guest
+      let username = null;
+      if (!getCookie('jwt')) {
+        username = prompt('Vennligst skriv inn et brukernavn:', 'Gjest' + Math.floor(Math.random() * 1000));
+        if (!username) return;
+      }
+      
+      socket.emit('join-game', { roomCode: code, username });
+    });
+    
+    // Leave the game
+    leaveGameBtn.addEventListener('click', () => {
+      if (confirm('Er du sikker på at du vil forlate spillet?')) {
+        window.location.reload();
+      }
+    });
+    
+    // Toggle ready status
+    toggleReadyBtn.addEventListener('click', () => {
+      isReady = !isReady;
+      
+      // Update button
+      toggleReadyBtn.classList.toggle('btn-outline-success');
+      toggleReadyBtn.classList.toggle('btn-success');
+      toggleReadyBtn.textContent = isReady ? 'Klar ✓' : 'Klar';
+      
+      // Send to server
+      socket.emit('toggle-ready', { roomCode });
+    });
+    
+    // Start the game (host only)
+    startGameBtn.addEventListener('click', () => {
+      if (!isHost) return;
+      
+      socket.emit('start-game', { roomCode });
+    });
+    
+    // Update participants list
+    function updateParticipantsList(participants) {
+      participantsList.innerHTML = '';
+      
+      participants.forEach(participant => {
+        const item = document.createElement('li');
+        item.className = 'list-group-item d-flex justify-content-between align-items-center';
+        
+        const nameSpan = document.createElement('span');
+        nameSpan.textContent = participant.username;
+        
+        const badge = document.createElement('span');
+        badge.className = participant.isReady ? 'badge bg-success' : 'badge bg-secondary';
+        badge.textContent = participant.isReady ? 'Klar' : 'Ikke klar';
+        
+        item.appendChild(nameSpan);
+        item.appendChild(badge);
+        participantsList.appendChild(item);
+      });
+      
+      // Enable/disable start button for host based on whether all players are ready
+      if (isHost) {
+        const allReady = participants.every(p => p.isReady);
+        startGameBtn.disabled = participants.length === 0 || !allReady;
+      }
+    }
+    
+    // Display a question
+    function displayQuestion(data) {
+      currentQuestion = data;
+      questionStartTime = Date.now();
+      
+      // Update counter
+      questionCounter.textContent = `${data.index + 1}/${data.total}`;
+      
+      // Clear previous question
+      answerStatus.classList.add('d-none');
+      optionsContainer.innerHTML = '';
+      
+      // Set question text
+      questionText.textContent = data.question.text;
+      
+      // Handle image if present
+      if (data.question.image) {
+        questionImage.src = data.question.image;
+        questionImageContainer.classList.remove('d-none');
+      } else {
+        questionImageContainer.classList.add('d-none');
+      }
+      
+      // Create options based on question type
+      if (data.question.type === 'multiple-choice' || data.question.type === 'poll') {
+        data.question.options.forEach((option, index) => {
+          const optionBtn = document.createElement('button');
+          optionBtn.className = 'btn btn-outline-primary w-100 mb-2 p-3 text-start';
+          optionBtn.textContent = option.text;
+          optionBtn.dataset.index = index;
+          
+          optionBtn.addEventListener('click', function() {
+            submitAnswer(index);
+            
+            // Highlight selected option
+            optionsContainer.querySelectorAll('.btn').forEach(btn => {
+              btn.classList.remove('btn-primary');
+              btn.classList.add('btn-outline-primary');
+            });
+            
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+          });
+          
+          optionsContainer.appendChild(optionBtn);
+        });
+      } else if (data.question.type === 'true-false') {
+        const trueBtn = document.createElement('button');
+        trueBtn.className = 'btn btn-outline-success w-100 mb-2 p-3';
+        trueBtn.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> SANT';
+        trueBtn.dataset.value = 'true';
+        
+        const falseBtn = document.createElement('button');
+        falseBtn.className = 'btn btn-outline-danger w-100 mb-2 p-3';
+        falseBtn.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i> USANT';
+        falseBtn.dataset.value = 'false';
+        
+        [trueBtn, falseBtn].forEach((btn, index) => {
+          btn.addEventListener('click', function() {
+            submitAnswer(index);
+            
+            // Highlight selected option
+            optionsContainer.querySelectorAll('.btn').forEach(b => {
+              b.classList.remove('btn-success', 'btn-danger');
+              b.classList.add(b.dataset.value === 'true' ? 'btn-outline-success' : 'btn-outline-danger');
+            });
+            
+            this.classList.remove(this.dataset.value === 'true' ? 'btn-outline-success' : 'btn-outline-danger');
+            this.classList.add(this.dataset.value === 'true' ? 'btn-success' : 'btn-danger');
+          });
+          
+          optionsContainer.appendChild(btn);
+        });
+      } else if (data.question.type === 'short-answer') {
+        const form = document.createElement('form');
+        form.className = 'mb-2';
+        
+        const input = document.createElement('input');
+        input.className = 'form-control form-control-lg mb-2';
+        input.placeholder = 'Skriv ditt svar her...';
+        input.required = true;
+        
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'btn btn-primary';
+        submitBtn.type = 'submit';
+        submitBtn.textContent = 'Svar';
+        
+        form.appendChild(input);
+        form.appendChild(submitBtn);
+        
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          submitAnswer(input.value);
+          
+          input.disabled = true;
+          submitBtn.disabled = true;
+        });
+        
+        optionsContainer.appendChild(form);
+      }
+      
+      // Start timer
+      startTimer(data.timeLimit);
+    }
+    
+    // Start question timer
+    function startTimer(seconds) {
+      timeLeft = seconds;
+      timerDisplay.textContent = timeLeft;
+      questionProgress.style.width = '100%';
+      
+      // Clear any existing timer
+      if (questionTimer) {
+        clearInterval(questionTimer);
+      }
+      
+      // Start new timer
+      questionTimer = setInterval(() => {
+        timeLeft--;
+        timerDisplay.textContent = timeLeft;
+        
+        // Update progress bar
+        const percentage = (timeLeft / seconds) * 100;
+        questionProgress.style.width = `${percentage}%`;
+        
+        // Change color based on time left
+        if (timeLeft <= 5) {
+          questionProgress.classList.add('bg-danger');
+          questionProgress.classList.remove('bg-warning', 'bg-primary');
+        } else if (timeLeft <= 10) {
+          questionProgress.classList.add('bg-warning');
+          questionProgress.classList.remove('bg-danger', 'bg-primary');
+        } else {
+          questionProgress.classList.add('bg-primary');
+          questionProgress.classList.remove('bg-danger', 'bg-warning');
+        }
+        
+        // Time's up!
+        if (timeLeft <= 0) {
+          clearInterval(questionTimer);
+          submitAnswer(null); // Submit empty answer on timeout
+          
+          answerStatus.textContent = 'Tiden er ute!';
+          answerStatus.classList.remove('d-none', 'alert-success');
+          answerStatus.classList.add('alert-danger');
+          
+          // Disable all answer buttons
+          optionsContainer.querySelectorAll('button').forEach(btn => {
+            btn.disabled = true;
+          });
+          
+          const answerInput = optionsContainer.querySelector('input');
+          if (answerInput) answerInput.disabled = true;
+        }
+      }, 1000);
+    }
+    
+    // Submit an answer
+    function submitAnswer(answer) {
+      if (!socket || !roomCode || !currentQuestion) return;
+      
+      const timeSpent = Date.now() - questionStartTime;
+      
+      socket.emit('submit-answer', {
+        roomCode,
+        answer,
+        timeSpent
+      });
+      
+      // Stop the timer
+      if (questionTimer) {
+        clearInterval(questionTimer);
+      }
+    }
+    
+    // Update leaderboard
+    function updateLeaderboard(scores) {
+      leaderboardBody.innerHTML = '';
+      
+      // Sort by score (highest first)
+      scores.sort((a, b) => b.score - a.score);
+      
+      scores.forEach((player, index) => {
+        const row = document.createElement('tr');
+        
+        const posCell = document.createElement('td');
+        posCell.textContent = index + 1;
+        
+        const nameCell = document.createElement('td');
+        nameCell.textContent = player.username;
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = player.score;
+        
+        row.appendChild(posCell);
+        row.appendChild(nameCell);
+        row.appendChild(scoreCell);
+        
+        leaderboardBody.appendChild(row);
+      });
+    }
+    
+    // Display final results
+    function displayResults(results) {
+      gameSection.classList.add('d-none');
+      resultsSection.classList.remove('d-none');
+      
+      // Display winner
+      const winner = results[0];
+      if (winner) {
+        winnerDisplay.textContent = `${winner.username} (${winner.score} poeng)`;
+        
+        // Start confetti for winner
+        const confettiSettings = { target: 'confetti-container', max: 150 };
+        const confetti = new ConfettiGenerator(confettiSettings);
+        confetti.render();
+        
+        // Stop confetti after 5 seconds
+        setTimeout(() => {
+          confetti.clear();
+        }, 5000);
+      }
+      
+      // Fill results table
+      finalResults.innerHTML = '';
+      
+      results.forEach(result => {
+        const row = document.createElement('tr');
+        
+        const posCell = document.createElement('td');
+        
+        // Use emoji for top 3
+        if (result.position === 1) {
+          posCell.innerHTML = '🥇 1';
+        } else if (result.position === 2) {
+          posCell.innerHTML = '🥈 2';
+        } else if (result.position === 3) {
+          posCell.innerHTML = '🥉 3';
+        } else {
+          posCell.textContent = result.position;
+        }
+        
+        const nameCell = document.createElement('td');
+        nameCell.textContent = result.username;
+        
+        const scoreCell = document.createElement('td');
+        scoreCell.textContent = result.score;
+        
+        row.appendChild(posCell);
+        row.appendChild(nameCell);
+        row.appendChild(scoreCell);
+        
+        finalResults.appendChild(row);
+      });
+    }
+    
+    // Helper function to get cookies
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+    
+    // Initialize room code input to uppercase
+    roomCodeInput.addEventListener('input', function() {
+      this.value = this.value.toUpperCase();
+    });
+  });
+</script>
+
+<style>
+  #room-code-display {
+    font-size: 1.5rem;
+    letter-spacing: 3px;
+  }
+  
+  .game-info {
+    font-weight: bold;
+    min-width: 100px;
+    text-align: right;
+  }
+  
+  #confetti-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+  }
+</style>
