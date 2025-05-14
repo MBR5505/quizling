@@ -1,0 +1,56 @@
+<div class="container">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h1>Alle Merker</h1>
+      <p class="lead">Her er alle merkene du kan tjene på IT Quiz-plattformen.</p>
+    </div>
+  </div>
+  
+  <div class="row row-cols-1 row-cols-md-3 g-4">
+    <% allAchievements.forEach(achievement => { %>
+      <div class="col">
+        <div class="card h-100 <%= userAchievements.some(a => a.type === achievement.type) ? 'border-success' : '' %>">
+          <div class="card-body text-center">
+            <div class="mb-3">
+              <span class="achievement-icon <%= achievement.color %> text-white rounded-circle d-inline-flex justify-content-center align-items-center" style="width: 60px; height: 60px;">
+                <i class="bi <%= achievement.icon %> fs-3"></i>
+              </span>
+            </div>
+            <h4><%= achievement.name %></h4>
+            <p><%= achievement.description %></p>
+            
+            <% if (userAchievements.some(a => a.type === achievement.type)) { %>
+              <span class="badge bg-success">Oppnådd</span>
+            <% } else { %>
+              <span class="badge bg-secondary">Ikke oppnådd</span>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+  
+  <div class="mt-5 text-center">
+    <p class="text-muted">Fortsett å delta aktivt på plattformen for å låse opp flere merker!</p>
+    <a href="/user/profile" class="btn btn-primary mt-2">Tilbake til profil</a>
+  </div>
+</div>
+
+<style>
+  .achievement-icon {
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover .achievement-icon {
+    transform: scale(1.1);
+  }
+  
+  .card {
+    transition: all 0.3s;
+  }
+  
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+</style>

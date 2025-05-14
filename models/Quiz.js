@@ -31,6 +31,26 @@ const questionSchema = new mongoose.Schema({
   }
 });
 
+// Pre-save hook to optimize images if needed
+questionSchema.pre('save', function(next) {
+  // Skip if no image or already optimized
+  if (!this.image || !this.image.startsWith('data:image')) {
+    return next();
+  }
+
+  // Check if image is too large (> 500KB)
+  if (this.image.length > 500000) {
+    try {
+      // In a real implementation, we'd compress the image here
+      // But we'll leave this as a marker for future improvement
+      console.log('Large image detected in question. Consider client-side compression.');
+    } catch (error) {
+      console.error('Error optimizing image:', error);
+    }
+  }
+  next();
+});
+
 const quizSchema = new mongoose.Schema({
   title: {
     type: String,

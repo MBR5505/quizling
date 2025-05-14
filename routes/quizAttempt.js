@@ -1,18 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const quizAttemptController = require('../controllers/quizAttemptController');
-const { requireAuth } = require('../middleware/auth');
+const { requireAuth, checkUser } = require('../middleware/auth');
 
-// Save a quiz attempt (available to both logged-in and anonymous users)
-router.post('/save', quizAttemptController.saveQuizAttempt);
+// Public routes - anyone can submit a quiz attempt
+router.post('/save', checkUser, quizAttemptController.saveQuizAttempt);
+router.get('/:quizId/leaderboard', quizAttemptController.getQuizLeaderboard);
 
-// Get quiz leaderboard
-router.get('/leaderboard/:quizId', quizAttemptController.getQuizLeaderboard);
-
-// Get user's quiz attempts (requires auth)
+// Protected routes - only logged in users
 router.get('/user', requireAuth, quizAttemptController.getUserQuizAttempts);
-
-// Get specific quiz attempt
 router.get('/:attemptId', requireAuth, quizAttemptController.getQuizAttempt);
 
 module.exports = router;

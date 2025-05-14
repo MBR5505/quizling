@@ -10,5 +10,6 @@ router.get('/profile', userController.profile);
 router.get('/dashboard', userController.dashboard);
 router.get('/edit-profile', userController.editProfileForm);
 router.put('/update-profile', userController.updateProfile);
+router.get('/achievements', requireAuth, userController.getAchievements);
 
 module.exports = router;

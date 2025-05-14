@@ -1,6 +1,7 @@
 const { parseJwt } = require('../utils/jwtUtils');
 const Quiz = require('../models/Quiz');
 const User = require('../models/User');
+const achievementService = require('../services/achievementService');
 
 // Store active game sessions
 const activeGames = new Map();
@@ -405,12 +406,20 @@ module.exports = (io) => {
     // Sort participants by score
     const results = [...game.participants].sort((a, b) => b.score - a.score);
     
+    // Award achievement to winner if not a guest
+    if (results.length > 0) {
+      const winner = results[0];
+      if (winner && !winner.isGuest && winner.id) {
+        achievementService.recordMultiplayerWin(winner.id);
+      }
+    }
+    
     // Send final results
     io.to(roomCode).emit('game-ended', { 
-      results: results.map(p => ({
+      results: results.map((p, index) => ({
         username: p.username,
         score: p.score,
-        position: results.indexOf(p) + 1
+        position: index + 1
       }))
     });
     

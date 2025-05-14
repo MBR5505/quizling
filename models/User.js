@@ -28,6 +28,35 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  achievements: [{
+    type: {
+      type: String,
+      enum: [
+        'quiz_creator',       // Lagde sin første quiz
+        'quiz_master',        // Fullførte 10 quizzer
+        'perfect_score',      // Fikk 100% score på en quiz
+        'quiz_champion',      // Vant en multiplayer quiz
+        'contributor',        // Lagde 5 quizzer
+        'expert',             // Fullførte 50 quizzer
+        'fast_learner',       // Fullførte en quiz på under 2 minutter
+        'dedicated',          // Logget inn 7 dager på rad
+        'popular_creator'     // Fikk en quiz som er tatt over 50 ganger
+      ]
+    },
+    earned: {
+      type: Date,
+      default: Date.now
+    },
+    displayed: {
+      type: Boolean,
+      default: true
+    }
+  }],
+  lastLogin: {
+    type: Date,
+    default: null
+  },
+  loginHistory: [Date],
   createdAt: {
     type: Date,
     default: Date.now

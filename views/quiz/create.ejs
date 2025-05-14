@@ -125,8 +125,11 @@
                 </div>
                 
                 <div class="mb-3">
-                  <label class="form-label">Spørsmålstekst</label>
-                  <input type="text" class="form-control form-control-lg question-text" placeholder="Skriv spørsmålet ditt her...">
+                  <label class="form-label">Spørsmålstekst <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control form-control-lg question-text" placeholder="Skriv spørsmålet ditt her..." required>
+                  <div class="invalid-feedback">
+                    Spørsmålstekst er påkrevd
+                  </div>
                 </div>
                 
                 <div class="mb-3">
@@ -571,11 +574,17 @@
     // Save the current question data
     function saveCurrentQuestionData() {
       const editor = questionEditorsContainer.querySelector('.question-editor');
-      const question = questions[currentQuestionIndex];
+      if (!editor) return; // Exit if no editor is found
       
-      // Save basic question data
+      const question = questions[currentQuestionIndex];
+      const questionTextInput = editor.querySelector('.question-text');
+      
+      if (questionTextInput) {
+        question.text = questionTextInput.value.trim();
+      }
+      
+      // Save other basic question data
       question.type = editor.querySelector('.question-type').value;
-      question.text = editor.querySelector('.question-text').value;
       question.points = parseInt(editor.querySelector('.question-points input').value) || 1;
       
       // Save options based on question type
@@ -583,7 +592,7 @@
         question.options = [];
         editor.querySelectorAll('.option-row').forEach(row => {
           question.options.push({
-            text: row.querySelector('.option-text').value,
+            text: row.querySelector('.option-text').value.trim(),
             isCorrect: row.querySelector('.option-correct').checked
           });
         });
@@ -596,15 +605,14 @@
         ];
       }
       else if (question.type === 'short-answer') {
-        question.correctAnswer = editor.querySelector('.correct-answer').value;
-        // Clear options for short answer
-        question.options = [];
+        question.correctAnswer = editor.querySelector('.correct-answer').value.trim();
+        question.options = []; // Clear options for short answer
       }
       else if (question.type === 'poll') {
         question.options = [];
         editor.querySelectorAll('.option-row').forEach(row => {
           question.options.push({
-            text: row.querySelector('.option-text').value,
+            text: row.querySelector('.option-text').value.trim(),
             isCorrect: false // No correct answers in polls
           });
         });
@@ -784,6 +792,23 @@
         const editor = questionEditorsContainer.querySelector('.question-editor');
         renderQuestionOptions(editor, question);
       });
+
+      // Add real-time validation for question text
+      const questionTextInput = questionEditorsContainer.querySelector('.question-text');
+      questionTextInput.addEventListener('input', function() {
+        if (!this.value.trim()) {
+          this.classList.add('is-invalid');
+        } else {
+          this.classList.remove('is-invalid');
+        }
+      });
+
+      // Also validate on blur
+      questionTextInput.addEventListener('blur', function() {
+        if (!this.value.trim()) {
+          this.classList.add('is-invalid');
+        }
+      });
       
       // Navigation buttons
       prevQuestionBtn.addEventListener('click', () => {
@@ -822,20 +847,27 @@
         return;
       }
       
-      // Prepare the quiz data
-      const quizData = {
-        title: quizTitle.value,
-        description: quizDescription.value,
-        category: categorySelect.value,
-        isPublished: isPublishedCheckbox.checked,
-        questions: questions
-      };
-      
       // Display loading state
       saveQuizBtn.disabled = true;
       saveQuizBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Lagrer...';
       
       try {
+        // Prepare the quiz data
+        const quizData = {
+          title: quizTitle.value.trim(),
+          description: quizDescription.value.trim(),
+          category: categorySelect.value,
+          isPublished: isPublishedCheckbox.checked,
+          questions: questions.map(question => ({
+            type: question.type,
+            text: question.text,
+            image: question.image,
+            points: question.points,
+            options: question.options,
+            correctAnswer: question.correctAnswer
+          }))
+        };
+        
         // Send data to server
         const response = await fetch('/quiz/create', {
           method: 'POST',
@@ -848,30 +880,47 @@
         const result = await response.json();
         
         if (!response.ok) {
-          throw new Error(result.errors || 'Det oppstod en feil ved lagring av quizzen.');
+          throw new Error(result.errors);
         }
         
         // Redirect to the new quiz
         window.location.href = `/quiz/${result.quiz._id}`;
-      } catch (error) {
-        alert('Feil: ' + error.message);
         
+      } catch (error) {
         // Reset button state
         saveQuizBtn.disabled = false;
         saveQuizBtn.innerHTML = '<i class="bi bi-save me-1"></i> Lagre quiz';
+        
+        // Show error message in an alert
+        const errorMessage = error.message || 'Det oppstod en feil ved lagring av quizzen.';
+        
+        // Create error alert
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+          <strong>Feil:</strong> ${errorMessage}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        
+        // Find the container where we want to show the error
+        const container = document.querySelector('.question-editor-container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // Scroll to error message
+        alertDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
     
     // Validate the quiz data
     function validateQuizData() {
       let isValid = true;
-      
+        
       // Check title and description
       if (!quizTitle.value.trim()) {
         alert('Vennligst fyll inn en tittel for quizzen.');
         quizTitle.focus();
         return false;
-      }
+      } 
       
       if (!quizDescription.value.trim()) {
         alert('Vennligst fyll inn en beskrivelse for quizzen.');
@@ -896,7 +945,7 @@
         const question = questions[i];
         
         // Check question text
-        if (!question.text.trim()) {
+        if (!question.text || !question.text.trim()) {
           alert(`Spørsmål ${i + 1} mangler tekst.`);
           switchToQuestion(i);
           return false;

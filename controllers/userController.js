@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Quiz = require('../models/Quiz');
 const QuizAttempt = require('../models/QuizAttempt');
+const achievementService = require('../services/achievementService');
 
 // User profile page
 exports.profile = async (req, res) => {
@@ -37,6 +38,15 @@ exports.profile = async (req, res) => {
       percentageScore: { $gte: 80 }
     }).sort({ percentageScore: -1, timeSpent: 1 }).limit(1);
     
+    // Process achievements to add details
+    const achievements = user.achievements?.map(achievement => {
+      const details = achievementService.getAchievementDetails(achievement.type);
+      return {
+        ...achievement.toObject(),
+        ...details
+      };
+    }) || [];
+    
     res.render('user/profile', {
       title: `${user.username} - Profil`,
       user,
@@ -45,7 +55,8 @@ exports.profile = async (req, res) => {
       quizzesTaken,
       averageScore,
       perfectScores,
-      topLeaderboard: !!topLeaderboard
+      topLeaderboard: !!topLeaderboard,
+      achievements
     });
   } catch (err) {
     console.error(err);
@@ -131,5 +142,34 @@ exports.updateProfile = async (req, res) => {
     }
     
     res.status(500).json({ error: 'Serverfeil ved oppdatering av profil' });
+  }
+};
+
+// Get all achievements
+exports.getAchievements = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.status(404).render('errors/404');
+    }
+    
+    // Get all possible achievements
+    const allAchievements = achievementService.getAllAchievements();
+    
+    // Get user's achievements
+    const userAchievements = user.achievements || [];
+    
+    res.render('user/achievements', {
+      title: 'Merker',
+      allAchievements,
+      userAchievements,
+      user
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).render('errors/error', {
+      message: 'Det oppstod en feil ved henting av merker',
+      error: err
+    });
   }
 };

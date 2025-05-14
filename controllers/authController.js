@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const achievementService = require('../services/achievementService');
 
 // Create JWT token
 const createToken = (id) => {
@@ -74,17 +75,7 @@ exports.register = async (req, res) => {
 // Login controller
 exports.login = async (req, res) => {
   try {
-    console.log('Login request received:', req.body);
     const { email, password } = req.body;
-
-    // Check if email and password are provided
-    if (!email || !password) {
-      return res.status(400).json({
-        errors: {
-          general: 'Både e-post og passord må fylles ut'
-        }
-      });
-    }
 
     // Find user by email
     const user = await User.findOne({ email });
@@ -108,10 +99,32 @@ exports.login = async (req, res) => {
       secure: process.env.NODE_ENV === 'production'
     });
 
-    console.log('Login successful for user:', user._id);
+    // Record login
+    user.lastLogin = new Date();
+    
+    // Add to login history (if not already set up)
+    if (!user.loginHistory) {
+      user.loginHistory = [];
+    }
+    
+    // Only add today's date if not already in history for today
+    const today = new Date().setHours(0, 0, 0, 0);
+    const alreadyLoggedInToday = user.loginHistory.some(date => {
+      return new Date(date).setHours(0, 0, 0, 0) === today;
+    });
+    
+    if (!alreadyLoggedInToday) {
+      user.loginHistory.push(new Date());
+    }
+    
+    await user.save();
+    
+    // Check for login achievements
+    await achievementService.checkLoginStreakAchievements(user._id);
+
     res.status(200).json({ user: user._id });
   } catch (err) {
-    console.error('Error during login:', err);
+    console.error(err);
     res.status(500).json({ errors: { general: 'Det oppstod en feil ved innlogging' } });
   }
 };

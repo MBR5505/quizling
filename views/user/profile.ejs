@@ -84,6 +84,41 @@
     </div>
     
     <div class="col-lg-8">
+      <!-- Achievements section -->
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h4 class="mb-0">Mine merker</h4>
+        </div>
+        <div class="card-body">
+          <% if (achievements && achievements.length > 0) { %>
+            <div class="row row-cols-1 row-cols-md-3 g-3">
+              <% achievements.forEach(achievement => { %>
+                <div class="col">
+                  <div class="card h-100">
+                    <div class="card-body text-center">
+                      <div class="mb-3">
+                        <span class="achievement-icon <%= achievement.color %> text-white rounded-circle d-inline-flex justify-content-center align-items-center" style="width: 50px; height: 50px;">
+                          <i class="bi <%= achievement.icon %> fs-4"></i>
+                        </span>
+                      </div>
+                      <h5><%= achievement.name %></h5>
+                      <p class="text-muted small"><%= achievement.description %></p>
+                      <small class="text-muted">Oppnådd: <%= new Date(achievement.earned).toLocaleDateString('nb-NO') %></small>
+                    </div>
+                  </div>
+                </div>
+              <% }); %>
+            </div>
+          <% } else { %>
+            <div class="text-center py-4">
+              <i class="bi bi-award text-muted fs-1"></i>
+              <h5 class="mt-3">Du har ingen merker ennå</h5>
+              <p class="text-muted">Fullfør quizzer og oppgaver for å tjene merker!</p>
+            </div>
+          <% } %>
+        </div>
+      </div>
+      
       <!-- Nav tabs -->
       <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
         <li class="nav-item" role="presentation">

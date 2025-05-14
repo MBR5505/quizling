@@ -25,166 +25,42 @@
         <% if (locals.user && quiz.creator._id.toString() === locals.user._id.toString()) { %>
           <a href="/quiz/<%= quiz._id %>/edit" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> Rediger quiz</a>
         <% } %>
-        <button id="show-leaderboard-btn" class="btn btn-outline-info"><i class="bi bi-trophy"></i> Se toppliste</button>
-        <div class="dropdown ms-2">
-          <button class="btn btn-outline-danger dropdown-toggle" type="button" id="reportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-flag"></i> Rapporter
-          </button>
-          <ul class="dropdown-menu" aria-labelledby="reportDropdown">
-            <li><a class="dropdown-item report-item" href="#" data-reason="inappropriate">Upassende innhold</a></li>
-            <li><a class="dropdown-item report-item" href="#" data-reason="incorrect">Feil informasjon</a></li>
-            <li><a class="dropdown-item report-item" href="#" data-reason="offensive">Støtende innhold</a></li>
-            <li><a class="dropdown-item report-item" href="#" data-reason="copyright">Brudd på opphavsrett</a></li>
-            <li><a class="dropdown-item report-item" href="#" data-reason="other">Annen årsak</a></li>
-          </ul>
-        </div>
       </div>
     </div>
   </div>
   
-  <!-- Main sections with tabs -->
-  <ul class="nav nav-tabs mb-4" id="quiz-tabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button" role="tab" aria-controls="info" aria-selected="true">Informasjon</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="false">Statistikk</button>
-    </li>
-    <li class="nav-item" role="presentation">
-      <button class="nav-link" id="leaderboard-tab" data-bs-toggle="tab" data-bs-target="#leaderboard" type="button" role="tab" aria-controls="leaderboard" aria-selected="false">Toppliste</button>
-    </li>
-  </ul>
-  
-  <div class="tab-content" id="quiz-tab-content">
-    <!-- Info tab -->
-    <div class="tab-pane fade show active" id="info" role="tabpanel" aria-labelledby="info-tab">
-      <div class="card mb-5" id="quiz-info">
-        <div class="card-header bg-light">
-          <h4 class="mb-0">Quiz informasjon</h4>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <div class="card h-100">
-                <div class="card-body">
-                  <h5 class="card-title"><i class="bi bi-question-circle text-primary"></i> Spørsmål</h5>
-                  <p class="card-text display-6 text-center"><%= quiz.questions.length %></p>
-                  <p class="text-muted text-center">spørsmål totalt</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="col-md-4 mb-3">
-              <div class="card h-100">
-                <div class="card-body">
-                  <h5 class="card-title"><i class="bi bi-clock text-primary"></i> Estimert tid</h5>
-                  <p class="card-text display-6 text-center"><%= Math.max(5, quiz.questions.length * 2) %></p>
-                  <p class="text-muted text-center">minutter</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="col-md-4 mb-3">
-              <div class="card h-100">
-                <div class="card-body">
-                  <h5 class="card-title"><i class="bi bi-calendar-date text-primary"></i> Opprettet</h5>
-                  <p class="card-text display-6 text-center"><%= new Date(quiz.createdAt).toLocaleDateString('nb-NO') %></p>
-                  <p class="text-muted text-center">dato</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="mt-4">
-            <h5 class="mb-3">Del denne quizzen</h5>
-            <div class="input-group">
-              <input type="text" class="form-control" id="share-url" value="<%= `${baseUrl}/quiz/${quiz._id}` %>" readonly>
-              <button class="btn btn-outline-primary" type="button" id="copy-url-btn">Kopier lenke</button>
-            </div>
-            
-            <div class="mt-3">
-              <button class="btn btn-outline-primary me-2 share-btn" data-platform="facebook">
-                <i class="bi bi-facebook"></i> Del på Facebook
-              </button>
-              <button class="btn btn-outline-info me-2 share-btn" data-platform="twitter">
-                <i class="bi bi-twitter"></i> Del på Twitter
-              </button>
-              <button class="btn btn-outline-secondary share-btn" data-platform="email">
-                <i class="bi bi-envelope"></i> Del via e-post
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+  <div class="card mb-5" id="quiz-info">
+    <div class="card-header bg-light">
+      <h4 class="mb-0">Quiz informasjon</h4>
     </div>
-    
-    <!-- Statistics tab -->
-    <div class="tab-pane fade" id="stats" role="tabpanel" aria-labelledby="stats-tab">
-      <div class="card mb-5">
-        <div class="card-header bg-light">
-          <h4 class="mb-0">Quiz statistikk</h4>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 mb-3">
-              <div class="card h-100 bg-primary text-white">
-                <div class="card-body text-center">
-                  <h5 class="card-title">Total gjennomført</h5>
-                  <p class="display-4 mb-0" id="total-attempts">--</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="col-md-4 mb-3">
-              <div class="card h-100 bg-success text-white">
-                <div class="card-body text-center">
-                  <h5 class="card-title">Gjennomsnitt</h5>
-                  <p class="display-4 mb-0" id="average-score">--%</p>
-                </div>
-              </div>
-            </div>
-            
-            <div class="col-md-4 mb-3">
-              <div class="card h-100 bg-info text-white">
-                <div class="card-body text-center">
-                  <h5 class="card-title">Gj.snitt tid</h5>
-                  <p class="display-4 mb-0" id="average-time">--:--</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="mt-4">
-            <h5 class="mb-3">Spørsmål med flest riktige svar</h5>
-            <div id="question-stats-container">
-              <div class="text-center my-4">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Laster inn...</span>
-                </div>
-                <p>Laster statistikk...</p>
-              </div>
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-question-circle text-primary"></i> Spørsmål</h5>
+              <p class="card-text display-6 text-center"><%= quiz.questions.length %></p>
+              <p class="text-muted text-center">spørsmål totalt</p>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    
-    <!-- Leaderboard tab -->
-    <div class="tab-pane fade" id="leaderboard" role="tabpanel" aria-labelledby="leaderboard-tab">
-      <div class="card mb-5">
-        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-          <h4 class="mb-0">Toppliste</h4>
-          <button class="btn btn-sm btn-outline-primary" id="refresh-leaderboard">
-            <i class="bi bi-arrow-clockwise"></i> Oppdater
-          </button>
+        
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-clock text-primary"></i> Estimert tid</h5>
+              <p class="card-text display-6 text-center"><%= Math.max(5, quiz.questions.length * 2) %></p>
+              <p class="text-muted text-center">minutter</p>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <div id="leaderboard-container">
-            <div class="text-center my-4">
-              <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Laster inn...</span>
-              </div>
-              <p>Laster toppliste...</p>
+        
+        <div class="col-md-4 mb-3">
+          <div class="card h-100">
+            <div class="card-body">
+              <h5 class="card-title"><i class="bi bi-calendar-date text-primary"></i> Opprettet</h5>
+              <p class="card-text display-6 text-center"><%= new Date(quiz.createdAt).toLocaleDateString('nb-NO') %></p>
+              <p class="text-muted text-center">dato</p>
             </div>
           </div>
         </div>
@@ -192,41 +68,44 @@
     </div>
   </div>
 
-  <!-- Quiz taking section -->
+  <!-- Quiz taking section - Slide format (Keep this one) -->
   <div id="quiz-container" class="d-none">
-    <!-- Header with progress bar and timer -->
+    <!-- Progress bar and info -->
     <div class="d-flex justify-content-between align-items-center mb-2">
       <div style="flex-grow: 1; margin-right: 15px;">
-        <div class="progress" style="height: 8px;">
+        <div class="progress" style="height: 10px;">
           <div id="quiz-progress" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
         </div>
       </div>
-      <div class="d-flex align-items-center">
-        <div class="timer me-3">
-          <i class="bi bi-clock"></i> <span id="quiz-timer">00:00</span>
-        </div>
-        <div class="slide-counter text-muted">
-          Slide <span id="current-slide">1</span>/<span id="total-slides"><%= quiz.questions.length %></span>
-        </div>
+      <div class="game-info">
+        <span id="question-counter">0/0</span> • 
+        <span id="timer-display">00</span>s
       </div>
     </div>
     
-    <!-- Rest of quiz container content -->
-    <div class="card">
-      <div class="card-body p-4">
-        <div id="question-container" class="question-container">
-          <!-- Questions will be rendered here dynamically -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h2 id="question-text" class="mb-4">Spørsmål</h2>
+        
+        <div id="question-image-container" class="text-center mb-4 d-none">
+          <img id="question-image" class="img-fluid rounded" alt="Spørsmålsbilde" style="max-height: 250px;">
         </div>
         
-        <div class="d-flex justify-content-between mt-4">
-          <button id="prev-btn" class="btn btn-outline-secondary" disabled>
-            <i class="bi bi-arrow-left me-1"></i> Forrige
-          </button>
-          <button id="next-btn" class="btn btn-primary">
-            Neste <i class="bi bi-arrow-right ms-1"></i>
-          </button>
+        <div id="options-container" class="mb-4">
+          <!-- Options will be added dynamically -->
         </div>
+        
+        <div id="answer-status" class="alert d-none"></div>
       </div>
+    </div>
+    
+    <div class="d-flex justify-content-between">
+      <button id="prev-btn" class="btn btn-outline-secondary" disabled>
+        <i class="bi bi-arrow-left me-1"></i> Forrige
+      </button>
+      <button id="next-btn" class="btn btn-primary">
+        Neste <i class="bi bi-arrow-right ms-1"></i>
+      </button>
     </div>
   </div>
   
@@ -254,238 +133,184 @@
       <!-- Answers will be inserted here -->
     </div>
   </div>
-  
-  <!-- Share quiz modal -->
-  <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="shareModalLabel">Del denne quizzen</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="share-link" class="form-label">Link til quiz</label>
-            <div class="input-group">
-              <input type="text" class="form-control" id="share-link" value="<%= `${baseUrl}/quiz/${quiz._id}` %>" readonly>
-              <button class="btn btn-outline-primary" type="button" id="copy-link-btn">Kopier</button>
-            </div>
-          </div>
-          
-          <p>Del på sosiale medier:</p>
-          <div class="d-flex gap-2">
-            <button class="btn btn-primary share-social" data-platform="facebook">
-              <i class="bi bi-facebook"></i> Facebook
-            </button>
-            <button class="btn btn-info share-social" data-platform="twitter">
-              <i class="bi bi-twitter"></i> Twitter
-            </button>
-            <button class="btn btn-success share-social" data-platform="whatsapp">
-              <i class="bi bi-whatsapp"></i> WhatsApp
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="reportModalLabel">Rapporter quiz</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="report-form">
-          <div class="mb-3">
-            <label for="report-reason" class="form-label">Årsak</label>
-            <input type="text" class="form-control" id="report-reason" readonly>
-          </div>
-          <div class="mb-3">
-            <label for="report-message" class="form-label">Beskriv problemet</label>
-            <textarea class="form-control" id="report-message" rows="3" required minlength="10" maxlength="500"></textarea>
-            <div class="form-text">Vennligst gi så mye informasjon som mulig om problemet.</div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
-        <button type="button" class="btn btn-danger" id="submit-report">Send rapport</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // Save quiz data
     const quiz = <%- JSON.stringify(quiz) %>;
-    const quizId = '<%= quiz._id %>';
     let currentQuestionIndex = 0;
     let userAnswers = Array(quiz.questions.length).fill(null);
-    let quizTimer = null;
-    let quizStartTime = null;
-    let timeSpent = 0;
+    let startTime = null;
+    let endTime = null;
     
-    // Dom elements
-    const startQuizBtn = document.getElementById('start-quiz');
+    // DOM Elements
+    const quizInfoSection = document.getElementById('quiz-info');
     const quizContainer = document.getElementById('quiz-container');
-    const quizTabsContainer = document.getElementById('quiz-tabs');
-    const tabsContent = document.getElementById('quiz-tab-content');
-    const showLeaderboardBtn = document.getElementById('show-leaderboard-btn');
-    const refreshLeaderboardBtn = document.getElementById('refresh-leaderboard');
-    const timerElement = document.getElementById('quiz-timer');
-    const copyUrlBtn = document.getElementById('copy-url-btn');
-    const shareBtns = document.querySelectorAll('.share-btn');
-    const copyLinkBtn = document.getElementById('copy-link-btn');
-    const shareSocialBtns = document.querySelectorAll('.share-social');
+    const questionContainer = document.getElementById('options-container');
+    const questionText = document.getElementById('question-text');
+    const questionImageContainer = document.getElementById('question-image-container');
+    const questionImage = document.getElementById('question-image');
+    const resultsContainer = document.getElementById('results-container');
+    const answersContainer = document.getElementById('answers-container');
+    const startQuizBtn = document.getElementById('start-quiz');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const currentSlideElement = document.getElementById('question-counter');
+    const quizProgressBar = document.getElementById('quiz-progress');
+    const answerStatus = document.getElementById('answer-status');
+    const timerDisplay = document.getElementById('timer-display');
     
-    // Initialize
-    loadLeaderboard();
-    loadQuizStats();
+    let timerInterval;
+    let secondsElapsed = 0;
     
-    // Event listeners
-    startQuizBtn.addEventListener('click', startQuiz);
-    showLeaderboardBtn.addEventListener('click', () => {
-      document.getElementById('leaderboard-tab').click();
-    });
-    refreshLeaderboardBtn.addEventListener('click', loadLeaderboard);
-    
-    // Copy URL button
-    copyUrlBtn.addEventListener('click', function() {
-      const shareUrl = document.getElementById('share-url');
-      shareUrl.select();
-      document.execCommand('copy');
-      
-      // Change button text temporarily
-      const originalText = this.textContent;
-      this.textContent = 'Kopiert!';
-      setTimeout(() => {
-        this.textContent = originalText;
-      }, 2000);
-    });
-    
-    // Copy link button in modal
-    copyLinkBtn.addEventListener('click', function() {
-      const shareLink = document.getElementById('share-link');
-      shareLink.select();
-      document.execCommand('copy');
-      
-      // Change button text temporarily
-      const originalText = this.textContent;
-      this.textContent = 'Kopiert!';
-      setTimeout(() => {
-        this.textContent = originalText;
-      }, 2000);
-    });
-    
-    // Social share buttons
-    shareBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const platform = this.dataset.platform;
-        shareQuiz(platform);
-      });
-    });
-    
-    shareSocialBtns.forEach(btn => {
-      btn.addEventListener('click', function() {
-        const platform = this.dataset.platform;
-        shareQuiz(platform);
-        const modal = bootstrap.Modal.getInstance(document.getElementById('shareModal'));
-        modal.hide();
-      });
-    });
-    
-    // Function to start the quiz
-    function startQuiz() {
-      // Hide tabs and show quiz container
-      quizTabsContainer.classList.add('d-none');
-      tabsContent.classList.add('d-none');
+    // Initialize quiz
+    startQuizBtn.addEventListener('click', function() {
+      // Hide quiz info, show quiz container
+      quizInfoSection.classList.add('d-none');
+      startQuizBtn.closest('.row').classList.add('d-none');
       quizContainer.classList.remove('d-none');
-      startQuizBtn.classList.add('d-none');
-      showLeaderboardBtn.classList.add('d-none');
       
-      // Reset answers and timer
+      // Reset answers
       userAnswers = Array(quiz.questions.length).fill(null);
-      quizStartTime = new Date();
+      currentQuestionIndex = 0;
+      
+      // Record start time
+      startTime = new Date();
+      secondsElapsed = 0;
       
       // Start timer
       startTimer();
       
       // Show first question
       showQuestion(0);
-    }
+    });
     
-    // Function to start the quiz timer
     function startTimer() {
-      let seconds = 0;
-      quizTimer = setInterval(() => {
-        seconds++;
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = seconds % 60;
-        
-        timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-        timeSpent = seconds;
+      // Clear any existing timer
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        timerDisplay.textContent = secondsElapsed;
       }, 1000);
     }
     
-    // Function to show a question
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+      
+      // Record end time
+      endTime = new Date();
+    }
+    
+    // Navigation buttons
+    prevBtn.addEventListener('click', function() {
+      if (currentQuestionIndex > 0) {
+        saveAnswer();
+        showQuestion(currentQuestionIndex - 1);
+      }
+    });
+    
+    nextBtn.addEventListener('click', function() {
+      saveAnswer();
+      
+      if (currentQuestionIndex < quiz.questions.length - 1) {
+        // Show next question
+        showQuestion(currentQuestionIndex + 1);
+      } else {
+        // Complete quiz
+        completeQuiz();
+      }
+    });
+    
+    // Save current answer
+    function saveAnswer() {
+      const question = quiz.questions[currentQuestionIndex];
+      
+      if (question.questionType === 'multiple-choice' || question.questionType === 'poll') {
+        const selectedOption = questionContainer.querySelector('input[type="radio"]:checked');
+        userAnswers[currentQuestionIndex] = selectedOption ? parseInt(selectedOption.value) : null;
+      } 
+      else if (question.questionType === 'true-false') {
+        const selectedOption = questionContainer.querySelector('input[type="radio"]:checked');
+        userAnswers[currentQuestionIndex] = selectedOption ? selectedOption.value === 'true' : null;
+      }
+      else if (question.questionType === 'short-answer') {
+        const answerInput = questionContainer.querySelector('input[type="text"]');
+        userAnswers[currentQuestionIndex] = answerInput ? answerInput.value.trim() : null;
+      }
+    }
+    
+    // Show question at specific index
     function showQuestion(index) {
       currentQuestionIndex = index;
       const question = quiz.questions[index];
       
-      // Update progress bar and counter
-      document.getElementById('current-slide').textContent = index + 1;
+      // Update progress
+      currentSlideElement.textContent = `${index + 1}/${quiz.questions.length}`;
       const progressPercentage = ((index + 1) / quiz.questions.length) * 100;
-      document.getElementById('quiz-progress').style.width = `${progressPercentage}%`;
+      quizProgressBar.style.width = `${progressPercentage}%`;
       
       // Enable/disable navigation buttons
-      document.getElementById('prev-btn').disabled = index === 0;
-      const nextBtn = document.getElementById('next-btn');
+      prevBtn.disabled = index === 0;
       nextBtn.textContent = index === quiz.questions.length - 1 ? 'Fullfør quiz' : 'Neste';
       
-      // Create question HTML
-      let html = `<h3 class="mb-4">${question.questionText}</h3>`;
+      // Clear previous question content
+      questionContainer.innerHTML = '';
+      answerStatus.classList.add('d-none');
       
-      // Add image if exists
+      // Set question text
+      questionText.textContent = question.questionText;
+      
+      // Handle image if present
       if (question.image) {
-        html += `
-          <div class="mb-4 text-center">
-            <img src="${question.image}" class="img-fluid rounded" style="max-height: 300px;" alt="Spørsmålsbilde">
-          </div>
-        `;
+        questionImage.src = question.image;
+        questionImageContainer.classList.remove('d-none');
+      } else {
+        questionImageContainer.classList.add('d-none');
       }
-
+      
       // Add options based on question type
       if (question.questionType === 'multiple-choice' || question.questionType === 'poll') {
-        html += `<div class="options-container">`;
-        question.options.forEach((option, optionIndex) => {
-          const isSelected = userAnswers[index] === optionIndex;
-          html += `
-            <div class="form-check mb-3">
-              <input class="form-check-input" type="radio" name="question-${index}" id="option-${index}-${optionIndex}" value="${optionIndex}" ${isSelected ? 'checked' : ''}>
-              <label class="form-check-label w-100" for="option-${index}-${optionIndex}">
-                <div class="card option-card ${isSelected ? 'border-primary' : ''}">
-                  <div class="card-body">
-                    ${option.text}
-                  </div>
+        const optionsHtml = question.options.map((option, idx) => `
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="radio" name="question-${index}" id="option-${index}-${idx}" value="${idx}" ${userAnswers[index] === idx ? 'checked' : ''}>
+            <label class="form-check-label w-100" for="option-${index}-${idx}">
+              <div class="card option-card ${userAnswers[index] === idx ? 'border-primary' : ''}">
+                <div class="card-body">
+                  ${option.text}
                 </div>
-              </label>
-            </div>
-          `;
+              </div>
+            </label>
+          </div>
+        `).join('');
+        
+        questionContainer.innerHTML = optionsHtml;
+        
+        // Add event listeners for option cards
+        document.querySelectorAll('.option-card').forEach(card => {
+          card.addEventListener('click', function() {
+            const radio = this.closest('label').previousElementSibling;
+            radio.checked = true;
+            
+            // Update styling
+            document.querySelectorAll('.option-card').forEach(c => c.classList.remove('border-primary'));
+            this.classList.add('border-primary');
+          });
         });
-        html += `</div>`;
       } 
       else if (question.questionType === 'true-false') {
-        html += `
-          <div class="options-container row">
+        questionContainer.innerHTML = `
+          <div class="row">
             <div class="col-md-6 mb-3">
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="question-${index}" id="option-${index}-true" value="true" ${userAnswers[index] === true ? 'checked' : ''}>
                 <label class="form-check-label w-100" for="option-${index}-true">
-                  <div class="card option-card ${userAnswers[index] === true ? 'border-primary' : ''}">
+                  <div class="card option-card ${userAnswers[index] === true ? 'border-success' : ''}">
                     <div class="card-body text-center">
                       <h5 class="mb-0">SANT</h5>
                     </div>
@@ -497,7 +322,7 @@
               <div class="form-check">
                 <input class="form-check-input" type="radio" name="question-${index}" id="option-${index}-false" value="false" ${userAnswers[index] === false ? 'checked' : ''}>
                 <label class="form-check-label w-100" for="option-${index}-false">
-                  <div class="card option-card ${userAnswers[index] === false ? 'border-primary' : ''}">
+                  <div class="card option-card ${userAnswers[index] === false ? 'border-danger' : ''}">
                     <div class="card-body text-center">
                       <h5 class="mb-0">USANT</h5>
                     </div>
@@ -507,9 +332,29 @@
             </div>
           </div>
         `;
+        
+        // Add event listeners for option cards
+        document.querySelectorAll('.option-card').forEach(card => {
+          card.addEventListener('click', function() {
+            const radio = this.closest('label').previousElementSibling;
+            radio.checked = true;
+            
+            // Update styling
+            document.querySelectorAll('.option-card').forEach(c => {
+              c.classList.remove('border-success');
+              c.classList.remove('border-danger');
+            });
+            
+            if (radio.value === 'true') {
+              this.classList.add('border-success');
+            } else {
+              this.classList.add('border-danger');
+            }
+          });
+        });
       }
       else if (question.questionType === 'short-answer') {
-        html += `
+        questionContainer.innerHTML = `
           <div class="mb-4">
             <label class="form-label">Ditt svar:</label>
             <input type="text" class="form-control form-control-lg" placeholder="Skriv svaret ditt her" value="${userAnswers[index] || ''}">
@@ -518,266 +363,243 @@
       }
       
       // Add points info
-      html += `
+      questionContainer.innerHTML += `
         <div class="text-muted mt-3">
           <small><i class="bi bi-star-fill text-warning me-1"></i> ${question.points || 1} poeng</small>
         </div>
       `;
-      
-      document.getElementById('question-container').innerHTML = html;
-      
-      // Add event listeners for option cards
-      const optionCards = document.querySelectorAll('.option-card');
-      optionCards.forEach(card => {
-        card.addEventListener('click', function() {
-          const radio = this.closest('label').previousElementSibling;
-          radio.checked = true;
-          
-          // Update styling
-          optionCards.forEach(c => c.classList.remove('border-primary'));
-          this.classList.add('border-primary');
-        });
-      });
     }
     
-    // Function to load the leaderboard
-    async function loadLeaderboard() {
-      const leaderboardContainer = document.getElementById('leaderboard-container');
+    // Complete the quiz
+    function completeQuiz() {
+      // Stop timer
+      stopTimer();
       
-      // Show loading spinner
-      leaderboardContainer.innerHTML = `
-        <div class="text-center my-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Laster inn...</span>
-          </div>
-          <p>Laster toppliste...</p>
-        </div>
-      `;
+      // Calculate score
+      let score = 0;
+      let totalPoints = 0;
       
-      try {
-        const response = await fetch(`/attempts/leaderboard/${quizId}`);
-        const data = await response.json();
+      // Prepare answers array for submission
+      const answers = [];
+      
+      quiz.questions.forEach((question, index) => {
+        const points = question.points || 1;
         
-        if (!response.ok) {
-          throw new Error(data.error || 'Kunne ikke laste toppliste');
-        }
-        
-        // Check if there are any entries
-        if (!data.leaderboard || data.leaderboard.length === 0) {
-          leaderboardContainer.innerHTML = '<div class="alert alert-info">Ingen har fullført denne quizzen ennå. Bli den første!</div>';
+        // Don't count points for poll questions
+        if (question.questionType === 'poll') {
           return;
         }
         
-        // Build leaderboard HTML
-        let html = `
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Bruker</th>
-                  <th scope="col">Score</th>
-                  <th scope="col">Prosent</th>
-                  <th scope="col">Tid brukt</th>
-                  <th scope="col">Dato</th>
-                </tr>
-              </thead>
-              <tbody>
-        `;
+        totalPoints += points;
+        let isCorrect = false;
         
-        // Add each leaderboard entry
-        data.leaderboard.forEach((entry, index) => {
-          // Format time
-          const minutes = Math.floor(entry.timeSpent / 60);
-          const seconds = entry.timeSpent % 60;
-          const formattedTime = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-          
-          // Format date
-          const formattedDate = new Date(entry.completedAt).toLocaleDateString('nb-NO');
-          
-          // Determine row class based on position
-          let rowClass = '';
-          if (index === 0) rowClass = 'table-warning'; // Gold
-          else if (index === 1) rowClass = 'table-light'; // Silver
-          else if (index === 2) rowClass = 'table-danger'; // Bronze
-          
-          html += `
-            <tr class="${rowClass}">
-              <th scope="row">${index + 1}</th>
-              <td>${entry.user ? entry.user.username : 'Anonym'}</td>
-              <td>${entry.score} / ${entry.totalPoints}</td>
-              <td>${entry.percentageScore}%</td>
-              <td>${formattedTime}</td>
-              <td>${formattedDate}</td>
-            </tr>
-          `;
+        if (question.questionType === 'multiple-choice') {
+          if (userAnswers[index] !== null && question.options[userAnswers[index]]?.isCorrect) {
+            score += points;
+            isCorrect = true;
+          }
+        } 
+        else if (question.questionType === 'true-false') {
+          const correctAnswer = question.options.find(opt => opt.isCorrect).text === 'Sant';
+          if (userAnswers[index] === correctAnswer) {
+            score += points;
+            isCorrect = true;
+          }
+        }
+        else if (question.questionType === 'short-answer') {
+          if (userAnswers[index] && userAnswers[index].toLowerCase() === question.correctAnswer?.toLowerCase()) {
+            score += points;
+            isCorrect = true;
+          }
+        }
+        
+        // Add to answers array
+        answers.push({
+          questionId: question._id,
+          answer: userAnswers[index],
+          isCorrect: isCorrect
         });
+      });
+      
+      // Calculate time spent
+      const timeSpent = endTime - startTime; // in milliseconds
+      
+      // Save quiz attempt to database
+      if (typeof fetch === 'function') {
+        fetch('/attempts/save', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            quizId: quiz._id,
+            answers,
+            score,
+            totalPoints,
+            timeSpent
+          })
+        })
+        .then(response => response.json())
+        .then(data => console.log('Quiz attempt saved:', data))
+        .catch(error => console.error('Error saving quiz attempt:', error));
+      }
+      
+      // Hide quiz container, show results
+      quizContainer.classList.add('d-none');
+      resultsContainer.classList.remove('d-none');
+      
+      // Update result display
+      document.getElementById('score').textContent = score;
+      document.getElementById('total-points').textContent = totalPoints;
+      
+      const percentage = totalPoints > 0 ? Math.round((score / totalPoints) * 100) : 0;
+      const progressBar = document.getElementById('score-progress');
+      progressBar.style.width = `${percentage}%`;
+      progressBar.textContent = `${percentage}%`;
+      
+      // Set progress bar color based on score
+      if (percentage >= 80) {
+        progressBar.classList.add('bg-success');
+      } else if (percentage >= 60) {
+        progressBar.classList.add('bg-info');
+      } else if (percentage >= 40) {
+        progressBar.classList.add('bg-warning');
+      } else {
+        progressBar.classList.add('bg-danger');
+      }
+      
+      // Setup buttons
+      document.getElementById('retry-quiz').addEventListener('click', function() {
+        resultsContainer.classList.add('d-none');
+        answersContainer.classList.add('d-none');
+        startQuizBtn.closest('.row').classList.remove('d-none');
+        quizInfoSection.classList.remove('d-none');
+      });
+      
+      document.getElementById('show-answers').addEventListener('click', function() {
+        showAnswers();
+      });
+    }
+    
+    // Show answers
+    function showAnswers() {
+      answersContainer.classList.remove('d-none');
+      
+      let html = '<h3 class="mb-4">Gjennomgang av spørsmål</h3>';
+      
+      quiz.questions.forEach((question, index) => {
+        // Skip showing correct/incorrect for poll questions
+        const isPoll = question.questionType === 'poll';
+        const isCorrect = isPoll ? null : checkIfCorrect(question, userAnswers[index]);
         
         html += `
-              </tbody>
-            </table>
-          </div>
-        `;
-        
-        leaderboardContainer.innerHTML = html;
-        
-      } catch (error) {
-        console.error('Error loading leaderboard:', error);
-        leaderboardContainer.innerHTML = `
-          <div class="alert alert-danger">
-            Det oppstod en feil ved lasting av toppliste: ${error.message}
-          </div>
-        `;
-      }
-    }
-    
-    // Function to load quiz stats
-    async function loadQuizStats() {
-      try {
-        const response = await fetch(`/quiz/${quizId}/stats`);
-        const data = await response.json();
-        
-        if (!response.ok) {
-          throw new Error(data.error || 'Kunne ikke laste statistikk');
-        }
-        
-        // Update the stats
-        document.getElementById('total-attempts').textContent = data.totalAttempts || '0';
-        document.getElementById('average-score').textContent = `${data.averageScore || 0}%`;
-        
-        // Format average time
-        const avgTimeInSeconds = data.averageTimeSpent || 0;
-        const avgMinutes = Math.floor(avgTimeInSeconds / 60);
-        const avgSeconds = Math.floor(avgTimeInSeconds % 60);
-        document.getElementById('average-time').textContent = 
-          `${avgMinutes.toString().padStart(2, '0')}:${avgSeconds.toString().padStart(2, '0')}`;
-        
-        // Build question stats
-        const statsContainer = document.getElementById('question-stats-container');
-        
-        if (data.questionStats && data.questionStats.length > 0) {
-          let html = '<div class="row">';
-          
-          data.questionStats.slice(0, 3).forEach((stat, index) => {
-            html += `
-              <div class="col-md-4 mb-3">
-                <div class="card h-100">
-                  <div class="card-header bg-light">
-                    <h5 class="card-title mb-0">Spørsmål ${stat.questionIndex + 1}</h5>
-                  </div>
-                  <div class="card-body">
-                    <p class="mb-2">${stat.questionText}</p>
-                    <div class="progress mb-2" style="height: 25px;">
-                      <div class="progress-bar bg-success" role="progressbar" style="width: ${stat.correctPercentage}%">
-                        ${stat.correctPercentage}% riktig
-                      </div>
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center ${isPoll ? 'bg-info' : (isCorrect ? 'bg-success' : 'bg-danger')} text-white">
+              <h5 class="mb-0">Spørsmål ${index + 1}</h5>
+              ${isPoll ? '<span>Meningsmåling</span>' : isCorrect ? '<span>Riktig!</span>' : '<span>Feil</span>'}
+            </div>
+            <div class="card-body">
+              <h5 class="card-title mb-3">${question.questionText}</h5>
+              
+              ${question.image ? `
+                <div class="mb-3 text-center">
+                  <img src="${question.image}" class="img-fluid rounded" style="max-height: 200px;" alt="Spørsmålsbilde">
+                </div>
+              ` : ''}
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <div class="card bg-light">
+                    <div class="card-header">Ditt svar</div>
+                    <div class="card-body">
+                      ${formatUserAnswer(question, userAnswers[index])}
                     </div>
-                    <small class="text-muted">Besvart av ${stat.totalAnswers} brukere</small>
                   </div>
                 </div>
+                
+                ${!isPoll ? `
+                  <div class="col-md-6">
+                    <div class="card bg-light">
+                      <div class="card-header">Riktig svar</div>
+                      <div class="card-body">
+                        ${formatCorrectAnswer(question)}
+                      </div>
+                    </div>
+                  </div>
+                ` : ''}
               </div>
-            `;
-          });
-          
-          html += '</div>';
-          statsContainer.innerHTML = html;
-        } else {
-          statsContainer.innerHTML = '<div class="alert alert-info">Ingen statistikk tilgjengelig ennå.</div>';
-        }
-        
-      } catch (error) {
-        console.error('Error loading stats:', error);
-        document.getElementById('total-attempts').textContent = '--';
-        document.getElementById('average-score').textContent = '--%';
-        document.getElementById('average-time').textContent = '--:--';
-        
-        document.getElementById('question-stats-container').innerHTML = `
-          <div class="alert alert-danger">
-            Det oppstod en feil ved lasting av statistikk: ${error.message}
+            </div>
           </div>
         `;
-      }
+      });
+      
+      answersContainer.innerHTML = html;
+      
+      // Scroll to answers
+      answersContainer.scrollIntoView({ behavior: 'smooth' });
     }
     
-    // Function to share quiz
-    function shareQuiz(platform) {
-      const quizUrl = encodeURIComponent(window.location.href);
-      const quizTitle = encodeURIComponent(`Ta denne ${quiz.title} quizzen!`);
-      
-      let shareUrl;
-      
-      switch (platform) {
-        case 'facebook':
-          shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${quizUrl}`;
-          break;
-        case 'twitter':
-          shareUrl = `https://twitter.com/intent/tweet?url=${quizUrl}&text=${quizTitle}`;
-          break;
-        case 'whatsapp':
-          shareUrl = `https://wa.me/?text=${quizTitle}%20${quizUrl}`;
-          break;
-        case 'email':
-          shareUrl = `mailto:?subject=${quizTitle}&body=Sjekk%20ut%20denne%20quizzen:%20${quizUrl}`;
-          break;
+    // Check if answer is correct
+    function checkIfCorrect(question, userAnswer) {
+      if (question.questionType === 'multiple-choice') {
+        return userAnswer !== null && question.options[userAnswer].isCorrect;
+      } 
+      else if (question.questionType === 'true-false') {
+        const correctOption = question.options.find(opt => opt.isCorrect);
+        const correctAnswer = correctOption?.text === 'Sant';
+        return userAnswer === correctAnswer;
       }
-      
-      if (shareUrl) {
-        window.open(shareUrl, '_blank');
+      else if (question.questionType === 'short-answer') {
+        return userAnswer && userAnswer.toLowerCase() === question.correctAnswer?.toLowerCase();
       }
+      return false;
     }
-
-    // Report quiz functionality
-    document.querySelectorAll('.report-item').forEach(item => {
-      item.addEventListener('click', function(e) {
-        e.preventDefault();
+    
+    // Format user answer for display
+    function formatUserAnswer(question, userAnswer) {
+      if (userAnswer === null || userAnswer === undefined || userAnswer === '') {
+        return '<em>Ingen svar</em>';
+      }
+      
+      if (question.questionType === 'multiple-choice' || question.questionType === 'poll') {
+        return question.options[userAnswer]?.text || '<em>Ukjent alternativ</em>';
+      } 
+      else if (question.questionType === 'true-false') {
+        return userAnswer ? 'Sant' : 'Usant';
+      }
+      else if (question.questionType === 'short-answer') {
+        return userAnswer;
+      }
+      
+      return '<em>Ukjent svarformat</em>';
+    }
+    
+    // Format correct answer for display
+    function formatCorrectAnswer(question) {
+      if (question.questionType === 'multiple-choice') {
+        const correctOptions = question.options.filter(opt => opt.isCorrect);
+        if (correctOptions.length === 0) {
+          return '<em>Ingen riktig svar definert</em>';
+        }
         
-        const reason = this.dataset.reason;
-        const reasonText = this.textContent;
+        if (correctOptions.length === 1) {
+          return correctOptions[0].text;
+        }
         
-        document.getElementById('report-reason').value = reasonText;
-        
-        const modal = new bootstrap.Modal(document.getElementById('reportModal'));
-        modal.show();
-        
-        // Set up submit handler
-        document.getElementById('submit-report').onclick = async function() {
-          const message = document.getElementById('report-message').value;
-          
-          if (!message || message.length < 10) {
-            alert('Vennligst skriv en beskrivelse av problemet på minst 10 tegn.');
-            return;
-          }
-          
-          try {
-            const response = await fetch('/quiz/report', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                quizId: '<%= quiz._id %>',
-                reason: reason,
-                message: message
-              })
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-              throw new Error(data.error || 'Det oppstod en feil ved innsending av rapport');
-            }
-            
-            // Close modal and show success message
-            modal.hide();
-            alert('Takk for rapporten. En administrator vil se på den så snart som mulig.');
-            
-          } catch (error) {
-            console.error('Error:', error);
-            alert('Det oppstod en feil ved innsending av rapport: ' + error.message);
-          }
-        };
-      });
-    });
+        return `<ul class="mb-0 ps-3">
+          ${correctOptions.map(opt => `<li>${opt.text}</li>`).join('')}
+        </ul>`;
+      } 
+      else if (question.questionType === 'true-false') {
+        const correctOption = question.options.find(opt => opt.isCorrect);
+        return correctOption?.text || '<em>Ukjent svar</em>';
+      }
+      else if (question.questionType === 'short-answer') {
+        return question.correctAnswer || '<em>Ingen riktig svar definert</em>';
+      }
+      
+      return '<em>Ukjent svarformat</em>';
+    }
   });
 </script>
 
@@ -798,21 +620,9 @@
     opacity: 0;
   }
   
-  .timer {
-    font-size: 1.2rem;
+  .game-info {
     font-weight: bold;
-    color: #333;
-  }
-  
-  .table-warning {
-    background-color: rgba(255, 193, 7, 0.2);
-  }
-  
-  .table-light {
-    background-color: rgba(248, 249, 250, 0.5);
-  }
-  
-  .table-danger {
-    background-color: rgba(220, 53, 69, 0.2);
+    min-width: 100px;
+    text-align: right;
   }
 </style>

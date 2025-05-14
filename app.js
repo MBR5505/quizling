@@ -32,8 +32,8 @@ mongoose.connect(process.env.MONGODB_URI, {
 
 // Middleware
 app.use(morgan('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));  // Increased limit to 50mb
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));  // Also increase urlencoded limit
 app.use(cookieParser());
 
 // Make sure public folder path is correct
@@ -86,9 +86,19 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err);
+  console.error('Uncaught error:', err);
+  console.error('Error stack:', err.stack);
+  
+  // If it's an API request, return JSON error
+  if (req.xhr || req.path.includes('/api/') || req.headers.accept.includes('application/json')) {
+    return res.status(err.status || 500).json({
+      errors: err.message || 'Server error'
+    });
+  }
+  
+  // Otherwise render error page
   res.status(err.status || 500).render('errors/error', {
-    message: err.message,
+    message: err.message || 'Det oppstod en feil på serveren',
     error: process.env.NODE_ENV === 'development' ? err : {}
   });
 });

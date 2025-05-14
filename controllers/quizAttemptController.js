@@ -1,5 +1,6 @@
 const QuizAttempt = require('../models/QuizAttempt');
 const Quiz = require('../models/Quiz');
+const achievementService = require('../services/achievementService');
 
 // Save quiz attempt
 exports.saveQuizAttempt = async (req, res) => {
@@ -28,6 +29,24 @@ exports.saveQuizAttempt = async (req, res) => {
     });
     
     await quizAttempt.save();
+    
+    // Update quiz attempt count
+    await Quiz.findByIdAndUpdate(quizId, {
+      $inc: { attemptCount: 1 }
+    });
+    
+    // If user is logged in, check for achievements
+    if (req.userId) {
+      try {
+        await achievementService.checkQuizCompletionAchievements(req.userId, {
+          percentageScore,
+          timeSpent
+        });
+      } catch (achievementError) {
+        console.error('Error checking achievements:', achievementError);
+        // Don't fail the request if achievement checking fails
+      }
+    }
     
     res.status(201).json({ quizAttempt });
   } catch (err) {

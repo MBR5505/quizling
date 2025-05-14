@@ -1,4 +1,5 @@
 const Quiz = require('../models/Quiz');
+const achievementService = require('../services/achievementService');
 
 // Get all quizzes
 exports.getAllQuizzes = async (req, res) => {
@@ -80,21 +81,94 @@ exports.createQuiz = async (req, res) => {
   try {
     const { title, description, category, questions, isPublished } = req.body;
     
+    // Validate required fields with specific messages
+    if (!title) {
+      return res.status(400).json({ errors: 'Tittel er påkrevd' });
+    }
+    if (!description) {
+      return res.status(400).json({ errors: 'Beskrivelse er påkrevd' });
+    }
+    if (!category) {
+      return res.status(400).json({ errors: 'Kategori er påkrevd' });
+    }
+    if (!Array.isArray(questions) || questions.length === 0) {
+      return res.status(400).json({ errors: 'Minst ett spørsmål er påkrevd' });
+    }
+
+    const dataSize = JSON.stringify(req.body).length;
+    if (dataSize > 5000000) { 
+      return res.status(400).json({ 
+        errors: 'Quiz data er for stor. Vennligst reduser bildestørrelser eller antall spørsmål.' 
+      });
+    }
+
+    // Validate each question
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i];
+      
+      // Validate question text
+      if (!q.text || !q.text.trim()) {
+        return res.status(400).json({ 
+          errors: `Spørsmål ${i + 1} mangler tekst` 
+        });
+      }
+
+      // Validate options for multiple choice and true-false questions
+      if ((q.type === 'multiple-choice' || q.type === 'true-false') && 
+          (!Array.isArray(q.options) || q.options.length === 0)) {
+        return res.status(400).json({ 
+          errors: `Spørsmål ${i + 1} mangler svaralternativer` 
+        });
+      }
+
+      // Validate short answer questions
+      if (q.type === 'short-answer' && !q.correctAnswer) {
+        return res.status(400).json({ 
+          errors: `Spørsmål ${i + 1} (fritekst) mangler riktig svar` 
+        });
+      }
+
+      // Validate multiple choice options have text
+      if (q.type === 'multiple-choice') {
+        const emptyOption = q.options.findIndex(opt => !opt.text || !opt.text.trim());
+        if (emptyOption !== -1) {
+          return res.status(400).json({
+            errors: `Spørsmål ${i + 1}, svaralternativ ${emptyOption + 1} mangler tekst`
+          });
+        }
+      }
+    }
+    
+    // Map client-side question format to server-side format
+    const formattedQuestions = questions.map(q => ({
+      questionText: q.text,
+      questionType: q.type,
+      options: q.options,
+      correctAnswer: q.correctAnswer,
+      image: q.image,
+      points: q.points || 1
+    }));
+
     // Create new quiz
     const quiz = await Quiz.create({
       title,
       description,
       category,
-      questions,
+      questions: formattedQuestions,
       creator: req.userId,
       isPublished: isPublished || false
     });
     
+    console.log('Quiz created successfully:', quiz._id);
+    
+    // Check for achievements
+    await achievementService.checkQuizCreationAchievements(req.userId);
+    
     res.status(201).json({ quiz });
   } catch (err) {
-    console.error(err);
+    console.error('Error creating quiz:', err);
     res.status(400).json({ 
-      errors: err.message 
+      errors: err.message || 'Det oppstod en feil ved oppretting av quiz'
     });
   }
 };
