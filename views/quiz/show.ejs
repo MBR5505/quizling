@@ -607,7 +607,8 @@
   .option-card {
     transition: all 0.2s ease;
     cursor: pointer;
-    border-width: 2px;
+    border-width: 2px !important;
+    margin-bottom: 0.5rem;
   }
   
   .option-card:hover {
@@ -615,9 +616,22 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
+  .option-card.border-primary {
+    border-color: #007bff !important;
+  }
+  
+  .option-card.border-success {
+    border-color: #28a745 !important;
+  }
+  
+  .option-card.border-danger {
+    border-color: #dc3545 !important;
+  }
+  
   .form-check-input {
     position: absolute;
     opacity: 0;
+    z-index: -1;
   }
   
   .game-info {
