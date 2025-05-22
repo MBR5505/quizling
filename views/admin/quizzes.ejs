@@ -1,0 +1,238 @@
+<!-- Admin quiz management page -->
+<div class="container-fluid">
+  <div class="row">
+    <!-- Sidebar -->
+    <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar collapse">
+      <div class="position-sticky pt-3">
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/dashboard">
+              <i class="bi bi-speedometer2 me-2"></i> Dashbord
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/users">
+              <i class="bi bi-people me-2"></i> Brukere
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/admin/quizzes">
+              <i class="bi bi-question-circle me-2"></i> Quizzer
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/reports">
+              <i class="bi bi-flag me-2"></i> Rapporter
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/admin/settings">
+              <i class="bi bi-gear me-2"></i> Innstillinger
+            </a>
+          </li>
+        </ul>
+        
+        <hr>
+        
+        <ul class="nav flex-column">
+          <li class="nav-item">
+            <a class="nav-link" href="/">
+              <i class="bi bi-arrow-left me-2"></i> Tilbake til nettstedet
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Administrer quizzer</h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <div class="input-group me-2">
+            <input type="text" id="search-quizzes" class="form-control" placeholder="Søk quizzer...">
+            <button class="btn btn-outline-secondary" type="button">
+              <i class="bi bi-search"></i>
+            </button>
+          </div>
+          <a href="/quiz/create/new" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Ny quiz
+          </a>
+        </div>
+      </div>
+
+      <!-- Quiz list -->
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th>Tittel</th>
+              <th>Forfatter</th>
+              <th>Kategori</th>
+              <th>Spørsmål</th>
+              <th>Status</th>
+              <th>Opprettet</th>
+              <th>Handlinger</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% quizzes.forEach(quiz => { %>
+              <tr>
+                <td><%= quiz.title %></td>
+                <td><%= quiz.creator.username %></td>
+                <td><span class="badge bg-secondary"><%= quiz.category %></span></td>
+                <td><%= quiz.questions.length %></td>
+                <td>
+                  <% if (quiz.isPublished) { %>
+                    <span class="badge bg-success">Publisert</span>
+                  <% } else { %>
+                    <span class="badge bg-warning">Kladd</span>
+                  <% } %>
+                </td>
+                <td><%= new Date(quiz.createdAt).toLocaleDateString('no-NO') %></td>
+                <td>
+                  <div class="btn-group">
+                    <a href="/quiz/<%= quiz._id %>" class="btn btn-sm btn-outline-primary">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="/quiz/<%= quiz._id %>/edit" class="btn btn-sm btn-outline-secondary">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger delete-quiz" data-quiz-id="<%= quiz._id %>">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirmation modal -->
+<div class="modal fade" id="deleteQuizModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Bekreft sletting</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>Er du sikker på at du vil slette denne quizzen? Dette kan ikke angres.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Avbryt</button>
+        <button type="button" class="btn btn-danger" id="confirmDelete">Slett</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('search-quizzes');
+    searchInput.addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+      
+      rows.forEach(row => {
+        const title = row.cells[0].textContent.toLowerCase();
+        const author = row.cells[1].textContent.toLowerCase();
+        const category = row.cells[2].textContent.toLowerCase();
+        
+        if (title.includes(searchTerm) || author.includes(searchTerm) || category.includes(searchTerm)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    });
+
+    // Delete quiz functionality
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteQuizModal'));
+    let quizToDelete = null;
+
+    document.querySelectorAll('.delete-quiz').forEach(button => {
+      button.addEventListener('click', function() {
+        quizToDelete = this.dataset.quizId;
+        deleteModal.show();
+      });
+    });
+
+    document.getElementById('confirmDelete').addEventListener('click', function() {
+      if (!quizToDelete) return;
+
+      fetch(`/quiz/${quizToDelete}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Remove the row from the table
+          const row = document.querySelector(`[data-quiz-id="${quizToDelete}"]`).closest('tr');
+          row.remove();
+          
+          // Show success message
+          alert('Quiz slettet');
+        } else {
+          alert('Kunne ikke slette quiz: ' + data.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('En feil oppstod under sletting av quiz');
+      })
+      .finally(() => {
+        deleteModal.hide();
+        quizToDelete = null;
+      });
+    });
+  });
+</script>
+
+<style>
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  padding: 48px 0 0;
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+.sidebar .nav-link {
+  font-weight: 500;
+  color: #333;
+}
+
+.sidebar .nav-link.active {
+  color: #007bff;
+}
+
+.sidebar .nav-link:hover {
+  color: #007bff;
+}
+
+.sidebar-heading {
+  font-size: .75rem;
+  text-transform: uppercase;
+}
+
+.navbar-brand {
+  padding-top: .75rem;
+  padding-bottom: .75rem;
+}
+
+.navbar .navbar-toggler {
+  top: .25rem;
+  right: 1rem;
+}
+</style>
