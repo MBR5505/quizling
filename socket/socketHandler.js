@@ -206,7 +206,33 @@ module.exports = (io) => {
       sendCurrentQuestion(roomCode);
     });
 
-    // Handle submitting an answer
+    // Handle submitting an answer    // Handle next question request from host
+    socket.on('next-question', ({ roomCode }) => {
+      // Check if the game exists
+      if (!activeGames.has(roomCode)) {
+        return socket.emit('error', { message: 'Game not found' });
+      }
+      
+      const game = activeGames.get(roomCode);
+      
+      // Verify requester is host
+      const hostId = game.host.id;
+      const requesterId = socket.userInfo.isGuest ? socket.id : socket.userInfo.id;
+      if (hostId !== requesterId) {
+        return socket.emit('error', { message: 'Only the host can advance questions' });
+      }
+      
+      // Check if the game is in progress
+      if (game.status !== 'in-progress') {
+        return socket.emit('error', { message: 'Game is not in progress' });
+      }
+      
+      // Move to next question
+      game.currentQuestion++;
+      // Send next question to all participants
+      sendCurrentQuestion(roomCode);
+    });
+
     socket.on('submit-answer', ({ roomCode, answer, timeSpent }) => {
       // Check if the game exists
       if (!activeGames.has(roomCode)) {

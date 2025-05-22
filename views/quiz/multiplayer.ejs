@@ -110,6 +110,22 @@
         </div>
         
         <div id="answer-status" class="alert d-none"></div>
+        
+        <!-- Host Controls -->
+        <div id="host-controls" class="d-none mt-4">
+          <hr>
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="auto-next">
+              <label class="form-check-label" for="auto-next">
+                Auto-neste etter 20 sekunder
+              </label>
+            </div>
+            <button id="next-question-btn" class="btn btn-primary">
+              Neste spørsmål <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -213,11 +229,34 @@
     let questionTimer = null;
     let timeLeft = 0;
     let questionStartTime = null;
+    let autoNextEnabled = false;
+    let autoNextTimeout = null;
     
     // Connect to socket server
     function connectSocket() {
       // Get JWT token if available
       const token = getCookie('jwt');
+      const hostControls = document.getElementById('host-controls');
+      const nextQuestionBtn = document.getElementById('next-question-btn');
+      const autoNextCheckbox = document.getElementById('auto-next');
+      
+      // Add host control event listeners
+      if (hostControls) {
+        nextQuestionBtn.addEventListener('click', () => {
+          if (isHost && socket && roomCode) {
+            socket.emit('next-question', { roomCode });
+          }
+        });
+        
+        autoNextCheckbox.addEventListener('change', (e) => {
+          autoNextEnabled = e.target.checked;
+          // Cancel any existing auto-next timeout
+          if (!autoNextEnabled && autoNextTimeout) {
+            clearTimeout(autoNextTimeout);
+            autoNextTimeout = null;
+          }
+        });
+      }
       
       socket = io({
         auth: {
@@ -389,6 +428,12 @@
       currentQuestion = data;
       questionStartTime = Date.now();
       
+      // Clear any existing auto-next timeout
+      if (autoNextTimeout) {
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+      
       // Update counter
       questionCounter.textContent = `${data.index + 1}/${data.total}`;
       
@@ -398,6 +443,48 @@
       
       // Set question text
       questionText.textContent = data.question.text;
+        // Handle host controls
+      const hostControls = document.getElementById('host-controls');
+      if (isHost) {
+        hostControls.classList.remove('d-none');
+        
+        // Handle button display based on question number
+        const nextQuestionBtn = document.getElementById('next-question-btn');
+        if (data.index === data.total - 1) {
+          // Last question - show finish button
+          nextQuestionBtn.textContent = 'Avslutt og vis resultater';
+          nextQuestionBtn.classList.remove('btn-primary');
+          nextQuestionBtn.classList.add('btn-success');
+          nextQuestionBtn.onclick = () => {
+            // End the game and show results
+            socket.emit('end-game', { roomCode });
+          };
+
+          // Disable auto-next checkbox on last question
+          const autoNextCheckbox = document.getElementById('auto-next');
+          autoNextCheckbox.checked = false;
+          autoNextCheckbox.disabled = true;
+        } else {
+          // Not last question - show next button
+          nextQuestionBtn.textContent = 'Neste spørsmål';
+          nextQuestionBtn.classList.remove('btn-success');
+          nextQuestionBtn.classList.add('btn-primary');
+          nextQuestionBtn.onclick = () => socket.emit('next-question', { roomCode });
+
+          // Enable auto-next checkbox
+          const autoNextCheckbox = document.getElementById('auto-next');
+          autoNextCheckbox.disabled = false;
+        }
+        
+        // Set auto-next timeout if enabled and not on last question
+        if (autoNextEnabled && data.index < data.total - 1) {
+          autoNextTimeout = setTimeout(() => {
+            socket.emit('next-question', { roomCode });
+          }, 20000); // 20 seconds
+        }
+      } else {
+        hostControls.classList.add('d-none');
+      }
       
       // Handle image if present
       if (data.question.image) {
@@ -588,6 +675,7 @@
     
     // Display final results
     function displayResults(results) {
+      // Hide game section and show results section
       gameSection.classList.add('d-none');
       resultsSection.classList.remove('d-none');
       
